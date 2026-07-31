@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集成管理系统 · 整体框架</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 顶部标题栏 -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">集成管理系统</span>
+            </div>
+            <nav class="breadcrumbs">
+                <span>总览</span>
+                <span class="sep">/</span>
+                <span class="current">整体框架</span>
+            </nav>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-icon" id="resetBtn" title="恢复默认配置">
+                <span>↻</span> 重置
+            </button>
+            <button class="btn-icon" id="exportBtn" title="导出配置">
+                <span>↓</span> 导出
+            </button>
+            <button class="btn-primary" id="helpBtn">
+                <span>?</span> 使用说明
+            </button>
+        </div>
+    </header>
+
+    <!-- 系统目标提示条 -->
+    <section class="goal-banner">
+        <div class="goal-icon">◎</div>
+        <div class="goal-content">
+            <div class="goal-title">系统目标</div>
+            <div class="goal-desc">将管理板块、行渠业务板块、行业板块等所有模块整合，通过信息展示、交互、数据沉淀，形成可复用的技能、检查项和优化方案，让判断不再仅靠个人主观。</div>
+        </div>
+    </section>
+
+    <!-- 主体内容 -->
+    <main class="main-container">
+
+        <!-- ========== 第1层：管理板块 ========== -->
+        <section class="layer" data-layer="1">
+            <div class="layer-header">
+                <div class="layer-title">
+                    <span class="layer-badge">第 1 层</span>
+                    <h2>管理板块</h2>
+                    <span class="layer-sub">服务商的「人」与「业务」识别机制</span>
+                </div>
+                <div class="layer-meta">
+                    <span class="meta-pill">负责人：gracejzguan（指导）</span>
+                </div>
+            </div>
+
+            <div class="cards-row">
+                <!-- 服务商库（核心源，箭头指向行渠联动） -->
+                <div class="card card-source" data-id="mgmt-servicer" data-platform="服务商库">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-blue">服</div>
+                        <div class="card-title">服务商库</div>
+                    </div>
+                    <div class="card-desc">建立清晰的服务商库，包含<strong>全量服务商的能力识别标签</strong>，是行渠联动的「人」与「业务」底座。</div>
+                </div>
+
+                <!-- SAB体系 -->
+                <div class="card" data-id="mgmt-sab" data-platform="SAB体系">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-purple">S</div>
+                        <div class="card-title">SAB 体系</div>
+                    </div>
+                    <div class="card-desc">在服务商库基础上，建立 SAB 等级评定，<strong>人和业务的隐性管理机制</strong>。</div>
+                </div>
+
+                <!-- 合伙人体系 -->
+                <div class="card" data-id="mgmt-partner" data-platform="合伙人体系">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-cyan">伙</div>
+                        <div class="card-title">合伙人体系</div>
+                    </div>
+                    <div class="card-desc">合伙人体系作为业务协作的<strong>隐性管理机制</strong>之一，与 SAB 互补。</div>
+                </div>
+
+                <!-- 风控 -->
+                <div class="card" data-id="mgmt-risk" data-platform="风控模块">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-orange">风</div>
+                        <div class="card-title">风控</div>
+                    </div>
+                    <div class="card-desc">风控模块<strong>暂不着急</strong>，列为 P3 优先级，后续按需搭建。</div>
+                </div>
+
+                <!-- 业绩管理（替代原「政策」） -->
+                <div class="card" data-id="mgmt-performance" data-platform="业绩管理">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-green">业</div>
+                        <div class="card-title">业绩管理</div>
+                    </div>
+                    <div class="card-desc">围绕 <strong>业绩完成度、预估、授信、政策</strong> 等维度进行统一管理与跟踪。</div>
+                </div>
+            </div>
+
+            <div class="layer-note">
+                <span class="note-icon">i</span>
+                <span>信息传递与交互：展示什么信息 → 如何传递 → 如何收集反馈 → 利用系统进行数据沉淀。</span>
+            </div>
+        </section>
+
+        <!-- ========== 服务商库 → 行渠联动 连接箭头 ========== -->
+        <div class="layer-connector" aria-hidden="true">
+            <div class="connector-line">
+                <span class="connector-label">服务商库 服务于</span>
+                <span class="connector-arrow">↓</span>
+                <span class="connector-target">行渠联动</span>
+            </div>
+        </div>
+
+        <!-- ========== 第2层：行渠业务板块 ========== -->
+        <section class="layer" data-layer="2">
+            <div class="layer-header">
+                <div class="layer-title">
+                    <span class="layer-badge">第 2 层</span>
+                    <h2>行渠业务板块</h2>
+                    <span class="layer-sub">业务板块的「业务」+「服务」双轮驱动</span>
+                </div>
+                <div class="layer-meta">
+                    <span class="meta-pill">目标：提升服务商孵化成功率</span>
+                </div>
+            </div>
+
+            <div class="cards-row">
+                <!-- 行渠联动（替代原「行区联动」） -->
+                <div class="card card-large" data-id="biz-linkage" data-platform="行渠联动">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-blue big">联</div>
+                        <div class="card-title">行渠联动</div>
+                    </div>
+                    <div class="card-desc">包括<strong>有效拓客</strong>和<strong>有效运营</strong>，目标：提升服务商孵化成功率。</div>
+                    <ul class="card-list">
+                        <li><span class="list-key">行业战队</span>：由战队群和各类会议组成</li>
+                        <li><span class="list-key">拓客</span> → 有效拓客</li>
+                        <li><span class="list-key">运营</span> → 有效运营 <span class="list-arrow">→</span> <span class="list-target">成功行业案例</span></li>
+                        <li><span class="list-key">拉通机制</span> <span class="list-arrow">→</span> 主动识别更多服务商推送到战队</li>
+                    </ul>
+                </div>
+
+                <!-- 小单元机会 -->
+                <div class="card card-large" data-id="biz-unit" data-platform="小单元机会">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-purple big">单</div>
+                        <div class="card-title">小单元机会</div>
+                    </div>
+                    <div class="card-desc">重点关注 <strong>P0 可复制</strong>，同时发现 &amp; 验证 P1、P2 机会。</div>
+                    <ul class="card-list">
+                        <li><span class="list-key">复制</span>：复制行业子类目</li>
+                        <li><span class="list-key">发现</span>：主动识别可复制机会</li>
+                        <li><span class="list-key">验证</span>：P0 / P1 / P2 验证路径</li>
+                    </ul>
+                </div>
+
+                <!-- 小赛道机会 -->
+                <div class="card card-large" data-id="biz-track" data-platform="小赛道机会">
+                    <button class="edit-btn" title="编辑跳转链接">✎</button>
+                    <div class="card-head">
+                        <div class="card-icon icon-cyan big">赛</div>
+                        <div class="card-title">小赛道机会</div>
+                    </div>
+                    <div class="card-desc">通过 <strong>Hunter + 提报机制</strong> 发现新机会，并跟进验证。</div>
+                    <ul class="card-list">
+                        <li><span class="list-num">①</span> Hunter + 提报 发现新垂类机会</li>
+                        <li><span class="list-num">②</span> 跟进、验证小赛道机会是否有意义</li>
+                        <li><span class="list-num">③</span> 研究是否可以有机会复制</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 第3层：底座 ========== -->
+        <section class="layer layer-base" data-layer="3">
+            <div class="layer-header">
+                <div class="layer-title">
+                    <span class="layer-badge">第 3 层</span>
+                    <h2>底座</h2>
+                    <span class="layer-sub">知识沉淀 · 工具 · 信息系统运维</span>
+                </div>
+                <div class="layer-meta">
+                    <span class="meta-pill">设计 → 搭建 → 运营 → 交互回收 → 优化</span>
+                </div>
+            </div>
+
+            <div class="base-grid">
+                <!-- Knowledge -->
+                <div class="base-block">
+                    <div class="base-head">
+                        <span class="base-label">Knowledge · 知识沉淀</span>
+                    </div>
+                    <div class="cards-col">
+                        <div class="mini-card" data-id="base-k-internal" data-platform="渠道电商组对内知识沉淀">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">渠道电商组对内知识沉淀</div>
+                            <div class="mini-desc">管理 / 行业 / 项目执行中沉淀的 SOP、方案。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-k-industry" data-platform="行业知识沉淀">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">行业知识沉淀</div>
+                            <div class="mini-desc">各行业动态、趋势、玩家图谱与最佳实践。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-k-mgmt" data-platform="管理知识更新">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">管理知识更新</div>
+                            <div class="mini-desc">管理方法论、SAB 规则、流程制度的更新记录。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-k-product" data-platform="产品系统更新">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">产品系统更新</div>
+                            <div class="mini-desc">产品迭代、平台能力、工具版本等更新汇总。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tool -->
+                <div class="base-block">
+                    <div class="base-head">
+                        <span class="base-label">Tool · 工具</span>
+                    </div>
+                    <div class="cards-col">
+                        <div class="mini-card" data-id="base-t-lexiang" data-platform="乐享">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">乐享</div>
+                            <div class="mini-desc">腾讯乐享，知识沉淀主阵地。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-t-bbx" data-platform="百宝箱">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">百宝箱</div>
+                            <div class="mini-desc">Excel 底层工具，用于数据处理与底表沉淀。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-t-mail" data-platform="邮件组">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">邮件组</div>
+                            <div class="mini-desc">邮件组，作为信息通知通路之一。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-t-group" data-platform="群">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">群</div>
+                            <div class="mini-desc">企业微信群、战队群等即时沟通群组。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-t-emei" data-platform="鹅妹">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">鹅妹</div>
+                            <div class="mini-desc">鹅妹（智能助手），用于内部咨询与知识问答。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-t-platform" data-platform="渠道一站式平台">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">渠道一站式平台</div>
+                            <div class="mini-desc">渠道业务一站式工作台，整合管理、运营、数据能力。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information System Operation -->
+                <div class="base-block">
+                    <div class="base-head">
+                        <span class="base-label">Information System Operation · 信息系统运维</span>
+                    </div>
+                    <div class="cards-col">
+                        <div class="mini-card" data-id="base-o-design" data-platform="系统设计">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">① 系统设计</div>
+                            <div class="mini-desc">整体系统设计、模块架构与信息流转路径。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-o-owner" data-platform="模块负责人">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">② 模块负责人</div>
+                            <div class="mini-desc">明确每个模块的负责人，搭建与运营由负责人主导，gracejzguan 指导。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-o-build" data-platform="搭建Coding">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">③ 搭建 Coding</div>
+                            <div class="mini-desc">由各模块负责人 Coding 搭建系统，gracejzguan 指导。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-o-run" data-platform="运营">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">④ 运营</div>
+                            <div class="mini-desc">系统日常运营与维护，含信息发布、用户答疑。</div>
+                        </div>
+                        <div class="mini-card" data-id="base-o-feedback" data-platform="交互回收优化">
+                            <button class="edit-btn" title="编辑跳转链接">✎</button>
+                            <div class="mini-title">⑤ 交互回收 · 优化</div>
+                            <div class="mini-desc">信息交互回收与持续优化闭环。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 编辑弹窗 -->
+    <div class="modal" id="editModal">
+        <div class="modal-mask"></div>
+        <div class="modal-panel">
+            <div class="modal-head">
+                <h3>编辑跳转链接</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label>板块名称</label>
+                    <input type="text" id="cardName" readonly>
+                </div>
+                <div class="form-row">
+                    <label>跳转链接</label>
+                    <input type="url" id="cardUrl" placeholder="https://...">
+                </div>
+                <div class="form-hint">
+                    留空则点击该板块不会跳转；输入完整 URL（含 http:// 或 https://）。
+                </div>
+                <div class="form-row">
+                    <label>板块说明（与卡片外显内容一致）</label>
+                    <textarea id="cardDesc" rows="3" placeholder="将显示在卡片正文的说明文字..."></textarea>
+                </div>
+                <div class="form-row" id="listRow">
+                    <label>要点列表（与卡片正文一致，每行一条）</label>
+                    <textarea id="cardList" rows="5" placeholder="行业战队：由战队群和各类会议组成&#10;拓客 → 有效拓客"></textarea>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn-ghost" id="modalClear">清空</button>
+                <button class="btn-primary" id="modalSave">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明弹窗 -->
+    <div class="modal" id="helpModal">
+        <div class="modal-mask"></div>
+        <div class="modal-panel">
+            <div class="modal-head">
+                <h3>使用说明</h3>
+                <button class="modal-close" id="helpClose">×</button>
+            </div>
+            <div class="modal-body">
+                <h4>基本操作</h4>
+                <ul class="help-list">
+                    <li><strong>点击板块</strong>：跳转到该板块对应的平台（需先配置链接），站内链接会直接跳转到对应子页面。</li>
+                    <li><strong>点击 ✎ 铅笔</strong>：编辑该板块的跳转链接、说明与要点列表，保存后与卡片外显内容完全一致。</li>
+                    <li><strong>顶部「重置」</strong>：恢复所有板块的默认配置。</li>
+                    <li><strong>顶部「导出」</strong>：导出当前所有配置 JSON，便于备份。</li>
+                </ul>
+                <h4>信息架构</h4>
+                <ul class="help-list">
+                    <li>第 1 层 · 管理板块：服务商库 → 服务于 → 行渠联动；含 SAB、合伙人、风控、业绩管理</li>
+                    <li>第 2 层 · 行渠业务板块：行渠联动、小单元机会、小赛道机会</li>
+                    <li>第 3 层 · 底座：知识沉淀 / 工具 / 信息系统运维</li>
+                </ul>
+                <h4>跳转说明</h4>
+                <p class="help-text">支持站内跳转（<code>page.html</code>）和站外跳转（<code>https://...</code>），站内链接会在当前页直接切换，无需新开标签。</p>
+                <h4>配置存储</h4>
+                <p class="help-text">所有配置自动保存在浏览器本地（localStorage），无需后端服务。</p>
+            </div>
+            <div class="modal-foot">
+                <button class="btn-primary" id="helpOk">知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示条 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
