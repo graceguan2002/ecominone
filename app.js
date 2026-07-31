@@ -3,6 +3,7 @@
     'use strict';
 
     const STORAGE_KEY = 'integrated-system-config-v2';
+    const API_BASE = '/api/config';
 
     // ---------- 默认配置 ----------
     // url 支持站内（page.html#hash）和站外（https://...）
@@ -144,38 +145,146 @@
         }
     };
 
-    // ---------- 配置读写 ----------
-    function loadConfig() {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                // 合并默认值与已存值（确保新加板块也能拿到默认）
-                const merged = {};
-                Object.keys(DEFAULT_CONFIG).forEach(function (id) {
-                    merged[id] = Object.assign({}, DEFAULT_CONFIG[id], parsed[id] || {});
-                });
-                return merged;
-            }
-        } catch (e) {
-            console.warn('配置读取失败', e);
-        }
+    // ---------- 云端 API 状态 ----------
+    let cloudAvailable = null; // null=未检测, true=可用, false=不可用
+
+    function getDefaultConfig() {
         return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     }
 
-    function saveConfig(config) {
+    function mergeWithDefaults(parsed) {
+        const merged = {};
+        Object.keys(DEFAULT_CONFIG).forEach(function (id) {
+            merged[id] = Object.assign({}, DEFAULT_CONFIG[id], parsed[id] || {});
+        });
+        return merged;
+    }
+
+    // ---------- 云端 API 调用 ----------
+    async function fetchCloudConfig() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-            return true;
+            const resp = await fetch(API_BASE, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            if (data.success && data.config) {
+                cloudAvailable = true;
+                return mergeWithDefaults(data.config);
+            }
+            if (data.fallback) {
+                // 云端不可用但返回了默认配置
+                cloudAvailable = false;
+                return data.config;
+            }
+            throw new Error(data.error || '未知错误');
         } catch (e) {
-            console.error('配置保存失败', e);
+            console.warn('[云端] 读取失败，降级到本地:', e.message);
+            cloudAvailable = false;
+            return null;
+        }
+    }
+
+    async function saveCloudConfig(config) {
+        try {
+            const resp = await fetch(API_BASE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ config: config })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            if (data.success) {
+                cloudAvailable = true;
+                return true;
+            }
+            throw new Error(data.error || '保存失败');
+        } catch (e) {
+            console.warn('[云端] 保存失败，降级到本地:', e.message);
+            cloudAvailable = false;
             return false;
         }
     }
 
-    function resetConfig() {
+    async function deleteCloudConfig() {
+        try {
+            const resp = await fetch(API_BASE, { method: 'DELETE' });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            cloudAvailable = data.success;
+            return data.success;
+        } catch (e) {
+            console.warn('[云端] 删除失败:', e.message);
+            cloudAvailable = false;
+            return false;
+        }
+    }
+
+    // ---------- 配置读写（云端优先 + 本地降级） ----------
+    async function loadConfigAsync() {
+        // 1. 优先从云端加载
+        const cloudConfig = await fetchCloudConfig();
+        if (cloudConfig) {
+            // 同步到本地作为备份
+            saveLocalConfig(cloudConfig);
+            return cloudConfig;
+        }
+        // 2. 云端不可用，从本地加载
+        return loadLocalConfig();
+    }
+
+    // 同步版本（初始化时用，返回 Promise）
+    function loadConfig() {
+        return loadConfigAsync();
+    }
+
+    async function saveConfigAsync(config) {
+        // 同时写入云端和本地
+        const cloudOk = await saveCloudConfig(config);
+        const localOk = saveLocalConfig(config);
+        return cloudOk || localOk;
+    }
+
+    function saveConfig(config) {
+        return saveConfigAsync(config);
+    }
+
+    async function resetConfigAsync() {
+        const fresh = getDefaultConfig();
+        // 删除云端数据
+        await deleteCloudConfig();
+        // 清除本地数据
         localStorage.removeItem(STORAGE_KEY);
-        return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        return fresh;
+    }
+
+    function resetConfig() {
+        return resetConfigAsync();
+    }
+
+    // ---------- 本地存储（降级备份） ----------
+    function loadLocalConfig() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return mergeWithDefaults(parsed);
+            }
+        } catch (e) {
+            console.warn('本地配置读取失败', e);
+        }
+        return getDefaultConfig();
+    }
+
+    function saveLocalConfig(config) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            return true;
+        } catch (e) {
+            console.error('本地配置保存失败', e);
+            return false;
+        }
     }
 
     // ---------- 渲染卡片内容（从 config 同步到 DOM） ----------
@@ -238,7 +347,7 @@
     }
 
     // ---------- 卡片点击 ----------
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', async function (e) {
         // 编辑按钮：阻止冒泡，打开弹窗
         if (e.target.closest('.edit-btn')) {
             e.stopPropagation();
@@ -252,7 +361,7 @@
         const card = e.target.closest('[data-id]');
         if (card) {
             const id = card.dataset.id;
-            const config = loadConfig();
+            const config = await loadConfig();
             const item = config[id];
             if (item && item.url) {
                 navigateTo(item.url);
@@ -269,10 +378,10 @@
     const helpModal = document.getElementById('helpModal');
     let editingCard = null;
 
-    function openEditModal(card) {
+    async function openEditModal(card) {
         editingCard = card;
         const id = card.dataset.id;
-        const config = loadConfig();
+        const config = await loadConfig();
         const item = config[id] || { url: '', desc: '', list: [] };
 
         document.getElementById('cardName').value = card.dataset.platform || id;
@@ -297,7 +406,7 @@
         editingCard = null;
     }
 
-    function saveEdit() {
+    async function saveEdit() {
         if (!editingCard) return;
         const id = editingCard.dataset.id;
         const url = document.getElementById('cardUrl').value.trim();
@@ -314,20 +423,20 @@
             .map(function (s) { return s.trim(); })
             .filter(function (s) { return s.length > 0; });
 
-        const config = loadConfig();
+        const config = await loadConfig();
         config[id] = { url: url, desc: desc, list: list };
-        saveConfig(config);
+        await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
-        showToast('已保存：' + editingCard.dataset.platform);
+        showToast('已保存到云端：' + editingCard.dataset.platform);
     }
 
-    function clearEdit() {
+    async function clearEdit() {
         if (!editingCard) return;
         const id = editingCard.dataset.id;
-        const config = loadConfig();
+        const config = await loadConfig();
         config[id] = { url: '', desc: '', list: [] };
-        saveConfig(config);
+        await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
         showToast('已清空该板块的配置');
@@ -357,20 +466,20 @@
     });
 
     // ---------- 重置 ----------
-    document.getElementById('resetBtn').addEventListener('click', function () {
-        if (confirm('确定要恢复所有板块的默认配置吗？\n（这将清空你设置的所有链接与说明）')) {
-            const fresh = resetConfig();
+    document.getElementById('resetBtn').addEventListener('click', async function () {
+        if (confirm('确定要恢复所有板块的默认配置吗？\n（这将清空云端和本地所有链接与说明）')) {
+            const fresh = await resetConfig();
             applyAll(fresh);
-            showToast('已重置为默认配置');
+            showToast('已重置为默认配置（云端+本地均已清除）');
         }
     });
 
     // ---------- 导出 ----------
-    document.getElementById('exportBtn').addEventListener('click', function () {
-        const config = loadConfig();
+    document.getElementById('exportBtn').addEventListener('click', async function () {
+        const config = await loadConfig();
         const data = {
             exportedAt: new Date().toISOString(),
-            version: '2.0',
+            version: '3.0',
             config: config
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -407,6 +516,14 @@
     });
 
     // ---------- 初始化 ----------
-    applyAll(loadConfig());
-    console.log('[集成管理系统] 框架初始化完成，共 ' + document.querySelectorAll('[data-id]').length + ' 个板块');
+    (async function init() {
+        const config = await loadConfig();
+        applyAll(config);
+        console.log('[集成管理系统] 框架初始化完成，共 ' + document.querySelectorAll('[data-id]').length + ' 个板块');
+        if (cloudAvailable) {
+            console.log('[集成管理系统] ☁️ 云端存储已连接');
+        } else {
+            console.log('[集成管理系统] 💾 使用本地存储（云端不可用）');
+        }
+    })();
 })();
