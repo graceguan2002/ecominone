@@ -61,9 +61,9 @@
             links: [],
             desc: '通过 Hunter + 提报机制 发现新机会，并跟进验证。',
             list: [
-                '① Hunter + 提报 发现新垂类机会',
-                '② 跟进、验证小赛道机会是否有意义',
-                '③ 研究是否可以有机会复制'
+                'Hunter + 提报 发现新垂类机会',
+                '跟进、验证小赛道机会是否有意义',
+                '研究是否可以有机会复制'
             ]
         },
 
@@ -308,15 +308,37 @@
             if (descEl && item.desc !== undefined) {
                 descEl.textContent = item.desc || '';
             }
-            // 2. 列表
+            // 2. 列表 — 不清空 HTML 模板的 list-key 等样式，仅给 li prepend 序号
             const listEl = card.querySelector('.card-list');
             if (listEl && item.list !== undefined) {
-                listEl.innerHTML = '';
-                (item.list || []).forEach(function (line) {
-                    if (!line || !line.trim()) return;
-                    const li = document.createElement('li');
-                    li.textContent = line;
-                    listEl.appendChild(li);
+                const CIRCLED = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+                const listArr = item.list || [];
+                const lis = listEl.querySelectorAll('li');
+                const hasInlineStyle = listEl.querySelector('.list-key, .list-arrow, .list-target, strong');
+                // 若 HTML 模板无内联样式 → 用 list 数据重建（支持用户编辑 list）
+                if (lis.length !== listArr.length || !hasInlineStyle) {
+                    listEl.innerHTML = '';
+                    listArr.forEach(function (line) {
+                        if (!line || !line.trim()) return;
+                        const li = document.createElement('li');
+                        // 把 **xxx** 还原成 <strong>xxx</strong>
+                        li.innerHTML = '<span class="list-num"></span> ' + line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                        listEl.appendChild(li);
+                    });
+                }
+                // 给每个 li prepend 序号 span（如果还没有）
+                listEl.querySelectorAll('li').forEach(function (li, idx) {
+                    const numEl = li.querySelector(':scope > .list-num');
+                    if (numEl && numEl.textContent) return; // 已有序号
+                    const num = CIRCLED[idx] || ((idx + 1) + '.');
+                    if (!numEl) {
+                        const span = document.createElement('span');
+                        span.className = 'list-num';
+                        span.textContent = num + ' ';
+                        li.insertBefore(span, li.firstChild);
+                    } else {
+                        numEl.textContent = num + ' ';
+                    }
                 });
             }
         }
