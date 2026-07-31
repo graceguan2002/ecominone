@@ -1,18 +1,24 @@
 /**
  * Vercel Serverless Function: /api/config
- * 使用 Upstash Redis REST API 读写集成管理系统的配置数据。
+ * 使用 Neon Serverless Postgres 读写集成管理系统的配置数据。
  *
  * 环境变量（在 Vercel 项目设置中配置）：
- *   UPSTASH_REDIS_REST_URL  - Upstash Redis REST URL
- *   UPSTASH_REDIS_REST_TOKEN - Upstash Redis REST Token
+ *   DATABASE_URL - Neon Postgres 连接字符串
+ *     (格式: postgresql://user:password@hostname/dbname?sslmode=require)
+ *
+ * 依赖：
+ *   npm install @neondatabase/serverless
  *
  * API:
- *   GET  /api/config          → 读取全量配置
- *   POST /api/config          → 写入全量配置 (body: { config: {...} })
- *   DELETE /api/config        → 删除配置（重置为默认）
+ *   GET    /api/config   → 读取全量配置
+ *   POST   /api/config   → 写入全量配置 (body: { config: {...} })
+ *   DELETE /api/config   → 删除配置（重置为默认）
  */
 
-const REDIS_KEY = 'integrated-system-config-v4';
+import { neon } from '@neondatabase/serverless';
+
+const TABLE_NAME = 'system_config';
+const CONFIG_KEY = 'integrated-system-config-v4';
 
 // 默认配置（与前端 app.js 保持一致）
 const DEFAULT_CONFIG = {
@@ -147,33 +153,26 @@ const DEFAULT_CONFIG = {
 };
 
 /**
- * 发送 Upstash Redis REST 命令
+ * 获取 Neon SQL 客户端（延迟初始化）
  */
-async function redisCommand(command) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-    if (!url || !token) {
-        throw new Error('Redis 未配置：请设置 UPSTASH_REDIS_REST_URL 和 UPSTASH_REDIS_REST_TOKEN 环境变量');
+function getSql() {
+    if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL 环境变量未设置');
     }
+    return neon(process.env.DATABASE_URL);
+}
 
-    const [cmd, ...args] = command;
-    const path = `/${cmd}/${args.map(encodeURIComponent).join('/')}`;
-    const fullUrl = url + path;
-
-    const response = await fetch(fullUrl, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Redis 请求失败 (${response.status}): ${text}`);
-    }
-
-    const data = await response.json();
-    return data.result;
+/**
+ * 确保数据表存在（自动创建）
+ */
+async function ensureTable(sql) {
+    await sql`
+        CREATE TABLE IF NOT EXISTS system_config (
+            key TEXT PRIMARY KEY,
+            config JSONB NOT NULL DEFAULT '{}'::jsonb,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    `;
 }
 
 /**
@@ -181,17 +180,17 @@ async function redisCommand(command) {
  */
 export async function GET() {
     try {
-        const raw = await redisCommand(['GET', REDIS_KEY]);
-        let config;
+        const sql = getSql();
+        await ensureTable(sql);
 
-        if (raw) {
-            try {
-                config = JSON.parse(raw);
-            } catch {
-                config = {};
-            }
-        } else {
-            config = {};
+        const rows = await sql`
+            SELECT config FROM ${sql(TABLE_NAME)}
+            WHERE key = ${CONFIG_KEY}
+        `;
+
+        let config = {};
+        if (rows.length > 0 && rows[0].config) {
+            config = rows[0].config;
         }
 
         // 合并默认值（确保新板块有兜底）
@@ -203,7 +202,7 @@ export async function GET() {
         return new Response(JSON.stringify({
             success: true,
             config: merged,
-            fromCache: !raw
+            fromCache: rows.length === 0
         }), {
             status: 200,
             headers: {
@@ -252,7 +251,15 @@ export async function POST(request) {
             });
         }
 
-        await redisCommand(['SET', REDIS_KEY, JSON.stringify(config)]);
+        const sql = getSql();
+        await ensureTable(sql);
+
+        await sql`
+            INSERT INTO ${sql(TABLE_NAME)} (key, config, updated_at)
+            VALUES (${CONFIG_KEY}, ${JSON.stringify(config)}, NOW())
+            ON CONFLICT (key)
+            DO UPDATE SET config = EXCLUDED.config, updated_at = NOW()
+        `;
 
         return new Response(JSON.stringify({
             success: true,
@@ -280,11 +287,17 @@ export async function POST(request) {
 }
 
 /**
- * DELETE /api/config - 删除配置（重置）
+ * DELETE /api/config - 删除配置（重置为默认）
  */
 export async function DELETE() {
     try {
-        await redisCommand(['DEL', REDIS_KEY]);
+        const sql = getSql();
+        await ensureTable(sql);
+
+        await sql`
+            DELETE FROM ${sql(TABLE_NAME)}
+            WHERE key = ${CONFIG_KEY}
+        `;
 
         return new Response(JSON.stringify({
             success: true,
