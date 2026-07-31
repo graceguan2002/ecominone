@@ -12,7 +12,7 @@
  *   DELETE /api/config        → 删除配置（重置为默认）
  */
 
-const REDIS_KEY = 'integrated-system-config-v3';
+const REDIS_KEY = 'integrated-system-config-v4';
 
 // 默认配置（与前端 app.js 保持一致）
 const DEFAULT_CONFIG = {
@@ -33,7 +33,7 @@ const DEFAULT_CONFIG = {
     },
     'mgmt-risk': {
         url: '',
-        desc: '风控模块暂不着急，列为 P3 优先级，后续按需搭建。',
+        desc: '外循环链路持续监控',
         list: []
     },
     'mgmt-performance': {
