@@ -419,36 +419,18 @@
             return;
         }
 
-        // 卡片本身点击：展开/收起子链接面板
+        // 卡片本身点击（空白处）：打开编辑弹窗
+        // 注：链接已默认展开显示，无需再点击展开
         const card = e.target.closest('[data-id]');
         if (card) {
             e.preventDefault();
-            toggleCardExpand(card);
+            openEditModal(card);
         }
     });
 
+    // 保留扩展函数作为兼容（不再使用，依赖 CSS 默认显示链接）
     function toggleCardExpand(card) {
-        var panel = card.querySelector('.card-links-panel');
-        if (!panel) {
-            // 没有子链接面板，打开编辑
-            openEditModal(card);
-            return;
-        }
-
-        var isActive = card.classList.contains('expanded');
-        if (isActive) {
-            // 收起
-            card.classList.remove('expanded');
-            if (expandedCard === card) expandedCard = null;
-        } else {
-            // 先收起之前展开的卡片
-            if (expandedCard && expandedCard !== card) {
-                expandedCard.classList.remove('expanded');
-            }
-            // 展开当前
-            card.classList.add('expanded');
-            expandedCard = card;
-        }
+        // 已废弃：链接面板默认显示，不再需要展开/收起
     }
 
     // ---------- 编辑弹窗 ----------

@@ -354,14 +354,7 @@ code {
     opacity: 1;
 }
 
-.card.has-link::before {
-    content: '🔗';
-    position: absolute;
-    top: 12px;
-    right: 36px;
-    font-size: 10px;
-    opacity: 0.6;
-}
+/* 链接已默认显示在面板中，无需额外的角标提示 */
 
 /* 源卡片：服务商库（发出箭头） */
 .card-source {
@@ -526,16 +519,31 @@ code {
 }
 
 /* ============== 子链接展开面板 ============== */
+/* 默认行为：有链接就显示（无需点击展开） */
 .card-links-panel {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 6px;
     margin-top: 10px;
     padding-top: 8px;
     border-top: 1px dashed var(--border-color);
     animation: slideDown 0.2s ease-out;
 }
 
-.card.expanded .card-links-panel {
-    display: block;
+/* 行渠业务板块的子模块（card-large）：一排两个链接 */
+.card-large .card-links-panel {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+/* mini-card 链接面板：紧凑、单列纵向 */
+.mini-card .card-links-panel {
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 6px;
 }
 
 @keyframes slideDown {
@@ -548,7 +556,7 @@ code {
     align-items: center;
     gap: 6px;
     padding: 7px 10px;
-    margin: 4px 0;
+    margin: 0;
     background: rgba(88, 166, 255, 0.06);
     border: 1px solid rgba(88, 166, 255, 0.15);
     border-radius: 6px;
@@ -557,6 +565,18 @@ code {
     font-size: 13px;
     transition: var(--transition);
     cursor: pointer;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.card-large .card-link-item {
+    padding: 6px 9px;
+    font-size: 12px;
+}
+
+.mini-card .card-link-item {
+    padding: 5px 8px;
+    font-size: 12px;
 }
 
 .card-link-item:hover {
@@ -576,6 +596,8 @@ code {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 /* 展开状态标记 */
@@ -735,14 +757,7 @@ code {
     opacity: 1;
 }
 
-.mini-card.has-link::before {
-    content: '🔗';
-    position: absolute;
-    top: 10px;
-    right: 32px;
-    font-size: 10px;
-    opacity: 0.6;
-}
+/* mini-card 链接已默认显示在面板中，无需额外角标 */
 
 .mini-title {
     font-size: 13px;
