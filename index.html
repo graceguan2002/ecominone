@@ -21,9 +21,6 @@
             </nav>
         </div>
         <div class="topbar-right">
-            <button class="btn-icon" id="resetBtn" title="恢复默认配置">
-                <span>↻</span> 重置
-            </button>
             <button class="btn-icon" id="exportBtn" title="导出配置">
                 <span>↓</span> 导出
             </button>
@@ -39,6 +36,10 @@
         <div class="goal-content">
             <div class="goal-title">系统目标</div>
             <div class="goal-desc">将管理板块、行渠业务板块、行业板块等所有模块整合，通过信息展示、交互、数据沉淀，形成可复用的技能、检查项和优化方案，让判断不再仅靠个人主观。</div>
+        </div>
+        <div class="sync-status" id="syncStatus" title="点击查看详情">
+            <span class="sync-dot"></span>
+            <span class="sync-text">检测中…</span>
         </div>
     </section>
 
@@ -339,7 +340,6 @@
                     <li><strong>点击板块</strong>：展开/收起该板块下的子链接列表，再次点击或点击其他板块会收起。</li>
                     <li><strong>点击 ✎ 铅笔</strong>：编辑该板块的链接（可添加多条，每条可设置专属标题和 URL）、说明与要点列表。</li>
                     <li><strong>点击子链接</strong>：直接跳转到对应平台。</li>
-                    <li><strong>顶部「重置」</strong>：恢复所有板块的默认配置。</li>
                     <li><strong>顶部「导出」</strong>：导出当前所有配置 JSON，便于备份。</li>
                 </ul>
                 <h4>信息架构</h4>

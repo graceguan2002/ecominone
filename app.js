@@ -180,9 +180,9 @@
                 return mergeWithDefaults(data.config);
             }
             if (data.fallback) {
-                // 云端不可用但返回了默认配置
+                // 云端不可用：返回 null，让 loadConfigAsync 走 localStorage
                 cloudAvailable = false;
-                return data.config;
+                return null;
             }
             throw new Error(data.error || '未知错误');
         } catch (e) {
@@ -249,24 +249,11 @@
         // 同时写入云端和本地
         const cloudOk = await saveCloudConfig(config);
         const localOk = saveLocalConfig(config);
-        return cloudOk || localOk;
+        return { cloud: cloudOk, local: localOk, ok: cloudOk || localOk };
     }
 
     function saveConfig(config) {
         return saveConfigAsync(config);
-    }
-
-    async function resetConfigAsync() {
-        const fresh = getDefaultConfig();
-        // 删除云端数据
-        await deleteCloudConfig();
-        // 清除本地数据
-        localStorage.removeItem(STORAGE_KEY);
-        return fresh;
-    }
-
-    function resetConfig() {
-        return resetConfigAsync();
     }
 
     // ---------- 本地存储（降级备份） ----------
@@ -571,10 +558,15 @@
 
         const config = await loadConfig();
         config[id] = { links: links, desc: desc, list: list };
-        await saveConfig(config);
+        const result = await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
-        showToast('已保存到云端：' + editingCard.dataset.platform);
+        updateSyncStatus();
+        if (result.cloud) {
+            showToast('☁️ 已同步到云端：' + editingCard.dataset.platform);
+        } else {
+            showToast('💾 已保存到本地：' + editingCard.dataset.platform + '（云端未启用）');
+        }
     }
 
     async function clearEdit() {
@@ -582,10 +574,11 @@
         const id = editingCard.dataset.id;
         const config = await loadConfig();
         config[id] = { links: [], desc: '', list: [] };
-        await saveConfig(config);
+        const result = await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
-        showToast('已清空该板块的配置');
+        updateSyncStatus();
+        showToast(result.cloud ? '已清空并同步到云端' : '已清空（仅本地）');
     }
 
     document.getElementById('modalClose').addEventListener('click', closeEditModal);
@@ -605,15 +598,6 @@
     });
     helpModal.querySelector('.modal-mask').addEventListener('click', function () {
         helpModal.classList.remove('active');
-    });
-
-    // ---------- 重置 ----------
-    document.getElementById('resetBtn').addEventListener('click', async function () {
-        if (confirm('确定要恢复所有板块的默认配置吗？\n（这将清空云端和本地所有链接与说明）')) {
-            const fresh = await resetConfig();
-            applyAll(fresh);
-            showToast('已重置为默认配置（云端+本地均已清除）');
-        }
     });
 
     // ---------- 导出 ----------
@@ -662,10 +646,76 @@
         const config = await loadConfig();
         applyAll(config);
         console.log('[集成管理系统] 框架初始化完成，共 ' + document.querySelectorAll('[data-id]').length + ' 个板块');
-        if (cloudAvailable) {
-            console.log('[集成管理系统] ☁️ 云端存储已连接');
-        } else {
-            console.log('[集成管理系统] 💾 使用本地存储（云端不可用）');
+        updateSyncStatus();
+        // 绑定状态指示器点击
+        var statusEl = document.getElementById('syncStatus');
+        if (statusEl) {
+            statusEl.addEventListener('click', function () {
+                if (cloudAvailable === true) {
+                    showToast('☁️ 云端已连接 — 数据自动同步', 2000);
+                } else if (cloudAvailable === false) {
+                    showSyncHelp();
+                } else {
+                    showToast('正在检测云端状态…', 1500);
+                }
+            });
         }
     })();
+
+    // ---------- 云端状态指示器 ----------
+    function updateSyncStatus() {
+        var el = document.getElementById('syncStatus');
+        if (!el) return;
+        var dot = el.querySelector('.sync-dot');
+        var text = el.querySelector('.sync-text');
+        el.classList.remove('is-checking', 'is-cloud', 'is-local', 'is-error');
+        if (cloudAvailable === true) {
+            el.classList.add('is-cloud');
+            text.textContent = '☁️ 云端已连接';
+            el.title = '点击查看详情';
+        } else if (cloudAvailable === false) {
+            el.classList.add('is-local');
+            text.textContent = '💾 仅本地保存';
+            el.title = '点击查看如何启用云端';
+        } else {
+            el.classList.add('is-checking');
+            text.textContent = '检测中…';
+        }
+    }
+
+    function showSyncHelp() {
+        var html = '<h4>云端未启用</h4>'
+            + '<p class="help-text">当前数据仅保存在<strong>浏览器本地</strong>（localStorage），清除浏览器数据后会丢失，且无法跨设备同步。</p>'
+            + '<h4>如何启用云端</h4>'
+            + '<ol class="help-list">'
+            + '<li>登录 Vercel Dashboard，进入项目 <code>ecominone</code></li>'
+            + '<li>进入 <strong>Settings → Environment Variables</strong></li>'
+            + '<li>添加以下两个变量（推荐使用 <a href="https://upstash.com" target="_blank" rel="noopener">Upstash Redis</a> 免费版）：</li>'
+            + '</ol>'
+            + '<p class="help-text"><code>UPSTASH_REDIS_REST_URL</code> = 你的 Upstash REST URL<br><code>UPSTASH_REDIS_REST_TOKEN</code> = 你的 Upstash REST Token</p>'
+            + '<ol class="help-list" start="4">'
+            + '<li>保存后重新部署（Vercel 会自动触发）</li>'
+            + '</ol>'
+            + '<p class="help-text">配置完成后，编辑任一板块保存即可自动同步到云端，所有设备/浏览器共享同一份数据。</p>';
+        showModal('云端同步说明', html);
+    }
+
+    // 通用弹窗（用于展示说明性内容）
+    function showModal(title, bodyHtml) {
+        var existing = document.getElementById('tempModal');
+        if (existing) existing.remove();
+        var wrap = document.createElement('div');
+        wrap.id = 'tempModal';
+        wrap.className = 'modal active';
+        wrap.innerHTML = '<div class="modal-mask"></div><div class="modal-panel">'
+            + '<div class="modal-head"><h3>' + title + '</h3><button class="modal-close temp-modal-close">×</button></div>'
+            + '<div class="modal-body">' + bodyHtml + '</div>'
+            + '<div class="modal-foot"><button class="btn-primary temp-modal-ok">知道了</button></div>'
+            + '</div>';
+        document.body.appendChild(wrap);
+        function close() { wrap.remove(); }
+        wrap.querySelector('.modal-mask').addEventListener('click', close);
+        wrap.querySelector('.temp-modal-close').addEventListener('click', close);
+        wrap.querySelector('.temp-modal-ok').addEventListener('click', close);
+    }
 })();
