@@ -2,44 +2,44 @@
 (function () {
     'use strict';
 
-    const STORAGE_KEY = 'integrated-system-config-v2';
+    const STORAGE_KEY = 'integrated-system-config-v3';
     const API_BASE = '/api/config';
 
     // ---------- 默认配置 ----------
-    // url 支持站内（page.html#hash）和站外（https://...）
-    // desc 与卡片正文外显文字完全一致（点开铅笔后的预填内容）
-    // list 数组：每项是卡片正文的一条要点（点开铅笔后预填，一行一条）
+    // links: [{title, url}] — 模块下的子链接列表，点击模块展开
+    // desc: 卡片外显说明文字
+    // list: 卡片要点列表
     const DEFAULT_CONFIG = {
         // 第1层：管理板块
         'mgmt-servicer': {
-            url: 'https://lexiang.tencent.com/',
+            links: [],
             desc: '建立清晰的服务商库，包含全量服务商的能力识别标签，是行渠联动的「人」与「业务」底座。',
             list: []
         },
         'mgmt-sab': {
-            url: '',
+            links: [],
             desc: '在服务商库基础上，建立 SAB 等级评定，人和业务的隐性管理机制。',
             list: []
         },
         'mgmt-partner': {
-            url: '',
+            links: [],
             desc: '合伙人体系作为业务协作的隐性管理机制之一，与 SAB 互补。',
             list: []
         },
         'mgmt-risk': {
-            url: '',
+            links: [],
             desc: '风控模块暂不着急，列为 P3 优先级，后续按需搭建。',
             list: []
         },
         'mgmt-performance': {
-            url: '',
+            links: [],
             desc: '围绕 业绩完成度、预估、授信、政策 等维度进行统一管理与跟踪。',
             list: []
         },
 
         // 第2层：行渠业务板块
         'biz-linkage': {
-            url: '',
+            links: [],
             desc: '包括有效拓客和有效运营，目标：提升服务商孵化成功率。',
             list: [
                 '行业战队：由战队群和各类会议组成',
@@ -49,7 +49,7 @@
             ]
         },
         'biz-unit': {
-            url: '',
+            links: [],
             desc: '重点关注 P0 可复制，同时发现 & 验证 P1、P2 机会。',
             list: [
                 '复制：复制行业子类目',
@@ -58,7 +58,7 @@
             ]
         },
         'biz-track': {
-            url: '',
+            links: [],
             desc: '通过 Hunter + 提报机制 发现新机会，并跟进验证。',
             list: [
                 '① Hunter + 提报 发现新垂类机会',
@@ -69,77 +69,77 @@
 
         // 第3层：底座
         'base-k-internal': {
-            url: 'https://lexiang.tencent.com/',
+            links: [],
             desc: '管理 / 行业 / 项目执行中沉淀的 SOP、方案。',
             list: []
         },
         'base-k-industry': {
-            url: '',
+            links: [],
             desc: '各行业动态、趋势、玩家图谱与最佳实践。',
             list: []
         },
         'base-k-mgmt': {
-            url: '',
+            links: [],
             desc: '管理方法论、SAB 规则、流程制度的更新记录。',
             list: []
         },
         'base-k-product': {
-            url: '',
+            links: [],
             desc: '产品迭代、平台能力、工具版本等更新汇总。',
             list: []
         },
         'base-t-lexiang': {
-            url: 'https://lexiang.tencent.com/',
+            links: [],
             desc: '腾讯乐享，知识沉淀主阵地。',
             list: []
         },
         'base-t-bbx': {
-            url: '',
+            links: [],
             desc: 'Excel 底层工具，用于数据处理与底表沉淀。',
             list: []
         },
         'base-t-mail': {
-            url: '',
+            links: [],
             desc: '邮件组，作为信息通知通路之一。',
             list: []
         },
         'base-t-group': {
-            url: '',
+            links: [],
             desc: '企业微信群、战队群等即时沟通群组。',
             list: []
         },
         'base-t-emei': {
-            url: '',
+            links: [],
             desc: '鹅妹（智能助手），用于内部咨询与知识问答。',
             list: []
         },
         'base-t-platform': {
-            url: '',
+            links: [],
             desc: '渠道业务一站式工作台，整合管理、运营、数据能力。',
             list: []
         },
         'base-o-design': {
-            url: '',
+            links: [],
             desc: '整体系统设计、模块架构与信息流转路径。',
             list: []
         },
         'base-o-owner': {
-            url: '',
+            links: [],
             desc: '明确每个模块的负责人，搭建与运营由负责人主导，gracejzguan 指导。',
             list: []
         },
         'base-o-build': {
-            url: '',
+            links: [],
             desc: '由各模块负责人 Coding 搭建系统，gracejzguan 指导。',
             list: []
         },
         'base-o-run': {
-            url: '',
+            links: [],
             desc: '系统日常运营与维护，含信息发布、用户答疑。',
             list: []
         },
         'base-o-feedback': {
-            url: '',
+            links: [],
             desc: '信息交互回收与持续优化闭环。',
             list: []
         }
@@ -155,7 +155,13 @@
     function mergeWithDefaults(parsed) {
         const merged = {};
         Object.keys(DEFAULT_CONFIG).forEach(function (id) {
-            merged[id] = Object.assign({}, DEFAULT_CONFIG[id], parsed[id] || {});
+            var item = parsed[id] || {};
+            // 兼容旧版 url 字段 → 转为 links 数组
+            if (item.url !== undefined && !item.links) {
+                item.links = item.url ? [{ title: '', url: item.url }] : [];
+            }
+            if (!item.links) item.links = [];
+            merged[id] = Object.assign({}, DEFAULT_CONFIG[id], item);
         });
         return merged;
     }
@@ -289,7 +295,6 @@
 
     // ---------- 渲染卡片内容（从 config 同步到 DOM） ----------
     function renderCard(card, item) {
-        const id = card.dataset.id;
         const isMini = card.classList.contains('mini-card');
 
         // 1. 描述文字
@@ -316,12 +321,53 @@
             }
         }
 
-        // 3. 链接标记
-        if (item.url) {
+        // 3. 子链接展开面板
+        updateCardLinks(card, item.links || []);
+
+        // 4. 链接标记（有子链接时显示角标）
+        if (item.links && item.links.length > 0) {
             card.classList.add('has-link');
         } else {
             card.classList.remove('has-link');
         }
+    }
+
+    // 更新卡片内子链接展开面板
+    function updateCardLinks(card, links) {
+        // 移除旧面板
+        const oldPanel = card.querySelector('.card-links-panel');
+        if (oldPanel) oldPanel.remove();
+
+        if (!links || links.length === 0) return;
+
+        var panel = document.createElement('div');
+        panel.className = 'card-links-panel';
+        links.forEach(function (link) {
+            var a = document.createElement('a');
+            a.className = 'card-link-item';
+            a.href = link.url || '#';
+            if (/^https?:\/\//i.test(link.url)) {
+                a.target = '_blank';
+                a.rel = 'noopener';
+            }
+            a.title = link.title || link.url || '';
+            a.innerHTML = '<span class="link-icon">↗</span><span class="link-title">' + (escapeHtml(link.title) || '未命名链接') + '</span>';
+            a.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (!link.url) {
+                    e.preventDefault();
+                    showToast('该链接未配置 URL', 1500);
+                }
+            });
+            panel.appendChild(a);
+        });
+        card.appendChild(panel);
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     function applyAll(config) {
@@ -346,9 +392,11 @@
         return true;
     }
 
-    // ---------- 卡片点击 ----------
+    // ---------- 卡片点击：展开/收起子链接面板 ----------
+    var expandedCard = null;
+
     document.addEventListener('click', async function (e) {
-        // 编辑按钮：阻止冒泡，打开弹窗
+        // 编辑按钮：阻止冒泡，打开编辑弹窗
         if (e.target.closest('.edit-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -357,37 +405,67 @@
             return;
         }
 
-        // 卡片本身点击：跳转
+        // 子链接项点击：交给链接自身的 click handler
+        if (e.target.closest('.card-link-item')) {
+            return;
+        }
+
+        // 卡片本身点击：展开/收起子链接面板
         const card = e.target.closest('[data-id]');
         if (card) {
-            const id = card.dataset.id;
-            const config = await loadConfig();
-            const item = config[id];
-            if (item && item.url) {
-                navigateTo(item.url);
-                showToast('正在打开：' + (card.dataset.platform || id));
-            } else {
-                openEditModal(card);
-                showToast('该板块尚未配置链接，请先编辑', 2000);
-            }
+            e.preventDefault();
+            toggleCardExpand(card);
         }
     });
+
+    function toggleCardExpand(card) {
+        var panel = card.querySelector('.card-links-panel');
+        if (!panel) {
+            // 没有子链接面板，打开编辑
+            openEditModal(card);
+            return;
+        }
+
+        var isActive = card.classList.contains('expanded');
+        if (isActive) {
+            // 收起
+            card.classList.remove('expanded');
+            if (expandedCard === card) expandedCard = null;
+        } else {
+            // 先收起之前展开的卡片
+            if (expandedCard && expandedCard !== card) {
+                expandedCard.classList.remove('expanded');
+            }
+            // 展开当前
+            card.classList.add('expanded');
+            expandedCard = card;
+        }
+    }
 
     // ---------- 编辑弹窗 ----------
     const editModal = document.getElementById('editModal');
     const helpModal = document.getElementById('helpModal');
     let editingCard = null;
+    let editingLinks = []; // 当前编辑中的链接列表 [{title, url}]
 
     async function openEditModal(card) {
         editingCard = card;
         const id = card.dataset.id;
         const config = await loadConfig();
-        const item = config[id] || { url: '', desc: '', list: [] };
+        const item = config[id] || { links: [], desc: '', list: [] };
 
         document.getElementById('cardName').value = card.dataset.platform || id;
-        document.getElementById('cardUrl').value = item.url || '';
         document.getElementById('cardDesc').value = item.desc || '';
         document.getElementById('cardList').value = (item.list || []).join('\n');
+
+        // 初始化链接列表
+        editingLinks = (item.links || []).map(function (l) {
+            return { title: l.title || '', url: l.url || '' };
+        });
+        if (editingLinks.length === 0) {
+            editingLinks.push({ title: '', url: '' });
+        }
+        renderLinkEditor();
 
         // 小卡片不显示列表编辑
         const listRow = document.getElementById('listRow');
@@ -396,26 +474,72 @@
         }
 
         editModal.classList.add('active');
-        setTimeout(function () {
-            document.getElementById('cardUrl').focus();
-        }, 100);
+    }
+
+    function renderLinkEditor() {
+        const container = document.getElementById('linkEditor');
+        var html = '';
+        editingLinks.forEach(function (link, i) {
+            html += '<div class="link-editor-row">' +
+                '<input type="text" class="link-title-input" placeholder="标题（外显名称）" value="' + escapeHtml(link.title) + '" data-idx="' + i + '">' +
+                '<input type="url" class="link-url-input" placeholder="https://..." value="' + escapeHtml(link.url) + '" data-idx="' + i + '">' +
+                '<button type="button" class="link-remove-btn" data-idx="' + i + '" title="删除此链接">×</button>' +
+                '</div>';
+        });
+        html += '<button type="button" class="link-add-btn" id="linkAddBtn">+ 添加链接</button>';
+        container.innerHTML = html;
+
+        // 绑定事件
+        container.querySelectorAll('.link-remove-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = parseInt(this.dataset.idx);
+                editingLinks.splice(idx, 1);
+                if (editingLinks.length === 0) {
+                    editingLinks.push({ title: '', url: '' });
+                }
+                renderLinkEditor();
+            });
+        });
+
+        container.querySelectorAll('.link-title-input, .link-url-input').forEach(function (input) {
+            input.addEventListener('input', function () {
+                var idx = parseInt(this.dataset.idx);
+                if (this.classList.contains('link-title-input')) {
+                    editingLinks[idx].title = this.value;
+                } else {
+                    editingLinks[idx].url = this.value;
+                }
+            });
+        });
+
+        document.getElementById('linkAddBtn').addEventListener('click', function () {
+            editingLinks.push({ title: '', url: '' });
+            renderLinkEditor();
+        });
     }
 
     function closeEditModal() {
         editModal.classList.remove('active');
         editingCard = null;
+        editingLinks = [];
     }
 
     async function saveEdit() {
         if (!editingCard) return;
         const id = editingCard.dataset.id;
-        const url = document.getElementById('cardUrl').value.trim();
         const desc = document.getElementById('cardDesc').value.trim();
         const listText = document.getElementById('cardList').value;
 
-        if (url && !/^(https?:\/\/|\.|\/|[\w-]+\.html)/i.test(url)) {
-            showToast('请输入正确链接：https://... 或 站内 page.html', 2500);
-            return;
+        // 收集编辑面板中的链接数据
+        var links = [];
+        var linkTitleInputs = document.querySelectorAll('#linkEditor .link-title-input');
+        var linkUrlInputs = document.querySelectorAll('#linkEditor .link-url-input');
+        for (var i = 0; i < linkTitleInputs.length; i++) {
+            var title = linkTitleInputs[i].value.trim();
+            var url = linkUrlInputs[i].value.trim();
+            if (url || title) {
+                links.push({ title: title, url: url });
+            }
         }
 
         const list = listText
@@ -424,7 +548,7 @@
             .filter(function (s) { return s.length > 0; });
 
         const config = await loadConfig();
-        config[id] = { url: url, desc: desc, list: list };
+        config[id] = { links: links, desc: desc, list: list };
         await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
@@ -435,7 +559,7 @@
         if (!editingCard) return;
         const id = editingCard.dataset.id;
         const config = await loadConfig();
-        config[id] = { url: '', desc: '', list: [] };
+        config[id] = { links: [], desc: '', list: [] };
         await saveConfig(config);
         renderCard(editingCard, config[id]);
         closeEditModal();
@@ -446,10 +570,6 @@
     document.getElementById('modalSave').addEventListener('click', saveEdit);
     document.getElementById('modalClear').addEventListener('click', clearEdit);
     editModal.querySelector('.modal-mask').addEventListener('click', closeEditModal);
-
-    document.getElementById('cardUrl').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') saveEdit();
-    });
 
     // ---------- 帮助弹窗 ----------
     document.getElementById('helpBtn').addEventListener('click', function () {

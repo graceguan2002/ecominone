@@ -207,9 +207,6 @@ code {
 }
 
 .layer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 1px dashed var(--border-color);
@@ -245,16 +242,6 @@ code {
 .layer-sub {
     font-size: 13px;
     color: var(--text-secondary);
-}
-
-.meta-pill {
-    display: inline-block;
-    padding: 4px 10px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    font-size: 12px;
-    border-radius: 12px;
 }
 
 /* ============== 卡片行 ============== */
@@ -487,47 +474,156 @@ code {
     margin-top: 1px;
 }
 
-/* ============== 层级连接箭头（服务商库 → 行渠联动） ============== */
-.layer-connector {
+/* ============== 子链接展开面板 ============== */
+.card-links-panel {
+    display: none;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    animation: slideDown 0.2s ease-out;
+}
+
+.card.expanded .card-links-panel {
+    display: block;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card-link-item {
     display: flex;
-    justify-content: center;
-    margin: -16px 0 -16px;
-    position: relative;
-    z-index: 1;
-}
-
-.connector-line {
-    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 18px;
-    background: linear-gradient(135deg, rgba(88, 166, 255, 0.12), rgba(188, 140, 255, 0.12));
-    border: 1px dashed var(--accent-blue);
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.connector-label {
+    gap: 6px;
+    padding: 7px 10px;
+    margin: 4px 0;
+    background: rgba(88, 166, 255, 0.06);
+    border: 1px solid rgba(88, 166, 255, 0.15);
+    border-radius: 6px;
     color: var(--text-primary);
-    font-weight: 600;
+    text-decoration: none;
+    font-size: 13px;
+    transition: var(--transition);
+    cursor: pointer;
 }
 
-.connector-target {
-    color: var(--accent-purple);
-    font-weight: 600;
+.card-link-item:hover {
+    background: rgba(88, 166, 255, 0.15);
+    border-color: var(--accent-blue);
+    text-decoration: none;
 }
 
-.connector-arrow {
+.card-link-item .link-icon {
     color: var(--accent-blue);
-    font-size: 16px;
-    font-weight: 700;
-    animation: bounce 1.6s infinite;
+    font-size: 12px;
+    flex-shrink: 0;
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(3px); }
+.card-link-item .link-title {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 展开状态标记 */
+.card.expanded {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.2);
+}
+
+.card.expanded::after {
+    transform: scaleX(1);
+}
+
+/* ============== 链接编辑器（弹窗内） ============== */
+.link-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.link-editor-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.link-title-input {
+    flex: 1;
+    padding: 7px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    min-width: 0;
+}
+
+.link-title-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+.link-url-input {
+    flex: 2;
+    padding: 7px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    min-width: 0;
+}
+
+.link-url-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+.link-remove-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--accent-red);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.link-remove-btn:hover {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+}
+
+.link-add-btn {
+    padding: 6px 12px;
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px dashed var(--accent-blue);
+    color: var(--accent-blue);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.link-add-btn:hover {
+    background: rgba(88, 166, 255, 0.2);
 }
 
 /* ============== 底座网格 ============== */
@@ -833,9 +929,5 @@ code {
     .layer-header {
         flex-direction: column;
         gap: 8px;
-    }
-    .connector-line {
-        font-size: 11px;
-        padding: 6px 12px;
     }
 }

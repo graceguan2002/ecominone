@@ -51,12 +51,9 @@
                 <div class="layer-title">
                     <span class="layer-badge">第 1 层</span>
                     <h2>管理板块</h2>
-                    <span class="layer-sub">服务商的「人」与「业务」识别机制</span>
-                </div>
-                <div class="layer-meta">
-                    <span class="meta-pill">负责人：gracejzguan（指导）</span>
-                </div>
+                <span class="layer-sub">服务商的「人」与「业务」识别机制</span>
             </div>
+        </div>
 
             <div class="cards-row">
                 <!-- 服务商库（核心源，箭头指向行渠联动） -->
@@ -116,27 +113,15 @@
             </div>
         </section>
 
-        <!-- ========== 服务商库 → 行渠联动 连接箭头 ========== -->
-        <div class="layer-connector" aria-hidden="true">
-            <div class="connector-line">
-                <span class="connector-label">服务商库 服务于</span>
-                <span class="connector-arrow">↓</span>
-                <span class="connector-target">行渠联动</span>
-            </div>
-        </div>
-
         <!-- ========== 第2层：行渠业务板块 ========== -->
         <section class="layer" data-layer="2">
             <div class="layer-header">
                 <div class="layer-title">
                     <span class="layer-badge">第 2 层</span>
                     <h2>行渠业务板块</h2>
-                    <span class="layer-sub">业务板块的「业务」+「服务」双轮驱动</span>
-                </div>
-                <div class="layer-meta">
-                    <span class="meta-pill">目标：提升服务商孵化成功率</span>
-                </div>
+                <span class="layer-sub">业务板块的「业务」+「服务」双轮驱动</span>
             </div>
+        </div>
 
             <div class="cards-row">
                 <!-- 行渠联动（替代原「行区联动」） -->
@@ -193,12 +178,9 @@
                 <div class="layer-title">
                     <span class="layer-badge">第 3 层</span>
                     <h2>底座</h2>
-                    <span class="layer-sub">知识沉淀 · 工具 · 信息系统运维</span>
-                </div>
-                <div class="layer-meta">
-                    <span class="meta-pill">设计 → 搭建 → 运营 → 交互回收 → 优化</span>
-                </div>
+                <span class="layer-sub">知识沉淀 · 工具 · 信息系统运维</span>
             </div>
+        </div>
 
             <div class="base-grid">
                 <!-- Knowledge -->
@@ -312,7 +294,7 @@
         <div class="modal-mask"></div>
         <div class="modal-panel">
             <div class="modal-head">
-                <h3>编辑跳转链接</h3>
+                <h3>编辑板块配置</h3>
                 <button class="modal-close" id="modalClose">×</button>
             </div>
             <div class="modal-body">
@@ -321,11 +303,11 @@
                     <input type="text" id="cardName" readonly>
                 </div>
                 <div class="form-row">
-                    <label>跳转链接</label>
-                    <input type="url" id="cardUrl" placeholder="https://...">
+                    <label>跳转链接（可添加多条，每条约等于一个子链接 + 外显标题）</label>
+                    <div id="linkEditor" class="link-editor"></div>
                 </div>
                 <div class="form-hint">
-                    留空则点击该板块不会跳转；输入完整 URL（含 http:// 或 https://）。
+                    每条链接可设置专属标题（外显名称）和 URL。留空则不显示。
                 </div>
                 <div class="form-row">
                     <label>板块说明（与卡片外显内容一致）</label>
@@ -354,8 +336,9 @@
             <div class="modal-body">
                 <h4>基本操作</h4>
                 <ul class="help-list">
-                    <li><strong>点击板块</strong>：跳转到该板块对应的平台（需先配置链接），站内链接会直接跳转到对应子页面。</li>
-                    <li><strong>点击 ✎ 铅笔</strong>：编辑该板块的跳转链接、说明与要点列表，保存后与卡片外显内容完全一致。</li>
+                    <li><strong>点击板块</strong>：展开/收起该板块下的子链接列表，再次点击或点击其他板块会收起。</li>
+                    <li><strong>点击 ✎ 铅笔</strong>：编辑该板块的链接（可添加多条，每条可设置专属标题和 URL）、说明与要点列表。</li>
+                    <li><strong>点击子链接</strong>：直接跳转到对应平台。</li>
                     <li><strong>顶部「重置」</strong>：恢复所有板块的默认配置。</li>
                     <li><strong>顶部「导出」</strong>：导出当前所有配置 JSON，便于备份。</li>
                 </ul>
