@@ -179,16 +179,11 @@
                 cloudAvailable = true;
                 return mergeWithDefaults(data.config);
             }
-            if (data.fallback) {
-                // 云端不可用：返回 null，让 loadConfigAsync 走 localStorage
-                cloudAvailable = false;
-                return null;
-            }
             throw new Error(data.error || '未知错误');
         } catch (e) {
-            console.warn('[云端] 读取失败，降级到本地:', e.message);
+            console.error('[云端] 读取失败:', e.message);
             cloudAvailable = false;
-            return null;
+            return getDefaultConfig();
         }
     }
 
@@ -207,7 +202,7 @@
             }
             throw new Error(data.error || '保存失败');
         } catch (e) {
-            console.warn('[云端] 保存失败，降级到本地:', e.message);
+            console.error('[云端] 保存失败:', e.message);
             cloudAvailable = false;
             return false;
         }
@@ -221,23 +216,16 @@
             cloudAvailable = data.success;
             return data.success;
         } catch (e) {
-            console.warn('[云端] 删除失败:', e.message);
+            console.error('[云端] 删除失败:', e.message);
             cloudAvailable = false;
             return false;
         }
     }
 
-    // ---------- 配置读写（云端优先 + 本地降级） ----------
+    // ---------- 配置读写（纯云端模式） ----------
     async function loadConfigAsync() {
-        // 1. 优先从云端加载
-        const cloudConfig = await fetchCloudConfig();
-        if (cloudConfig) {
-            // 同步到本地作为备份
-            saveLocalConfig(cloudConfig);
-            return cloudConfig;
-        }
-        // 2. 云端不可用，从本地加载
-        return loadLocalConfig();
+        // 全部走云端，云端失败时返回默认配置（保证页面不空白）
+        return await fetchCloudConfig();
     }
 
     // 同步版本（初始化时用，返回 Promise）
@@ -246,38 +234,26 @@
     }
 
     async function saveConfigAsync(config) {
-        // 同时写入云端和本地
+        // 全部走云端
         const cloudOk = await saveCloudConfig(config);
-        const localOk = saveLocalConfig(config);
-        return { cloud: cloudOk, local: localOk, ok: cloudOk || localOk };
+        return { cloud: cloudOk, local: false, ok: cloudOk };
     }
 
     function saveConfig(config) {
         return saveConfigAsync(config);
     }
 
-    // ---------- 本地存储（降级备份） ----------
+    // ---------- 本地存储已停用（统一走云端 Neon Postgres） ----------
+    // 保留函数定义作为占位，避免破坏其它可能的引用
     function loadLocalConfig() {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                return mergeWithDefaults(parsed);
-            }
-        } catch (e) {
-            console.warn('本地配置读取失败', e);
-        }
+        return getDefaultConfig();
+    }
         return getDefaultConfig();
     }
 
     function saveLocalConfig(config) {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-            return true;
-        } catch (e) {
-            console.error('本地配置保存失败', e);
-            return false;
-        }
+        // 已停用：所有数据走云端 Neon Postgres
+        return true;
     }
 
     // ---------- 渲染卡片内容（从 config 同步到 DOM） ----------
