@@ -244,10 +244,7 @@
     }
 
     // ---------- 本地存储已停用（统一走云端 Neon Postgres） ----------
-    // 保留函数定义作为占位，避免破坏其它可能的引用
     function loadLocalConfig() {
-        return getDefaultConfig();
-    }
         return getDefaultConfig();
     }
 

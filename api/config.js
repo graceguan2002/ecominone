@@ -166,13 +166,13 @@ function getSql() {
  * 确保数据表存在（自动创建）
  */
 async function ensureTable(sql) {
-    await sql`
+    await sql.query(`
         CREATE TABLE IF NOT EXISTS system_config (
             key TEXT PRIMARY KEY,
             config JSONB NOT NULL DEFAULT '{}'::jsonb,
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
-    `;
+    `);
 }
 
 /**
@@ -184,7 +184,7 @@ export async function GET() {
         await ensureTable(sql);
 
         // 表名是字面量常量，安全拼接
-        const rows = await sql(
+        const rows = await sql.query(
             `SELECT config FROM ${TABLE_NAME} WHERE key = $1`,
             [CONFIG_KEY]
         );
@@ -255,7 +255,7 @@ export async function POST(request) {
         const sql = getSql();
         await ensureTable(sql);
 
-        await sql(
+        await sql.query(
             `INSERT INTO ${TABLE_NAME} (key, config, updated_at)
              VALUES ($1, $2::jsonb, NOW())
              ON CONFLICT (key) DO UPDATE
@@ -296,7 +296,7 @@ export async function DELETE() {
         const sql = getSql();
         await ensureTable(sql);
 
-        await sql(
+        await sql.query(
             `DELETE FROM ${TABLE_NAME} WHERE key = $1`,
             [CONFIG_KEY]
         );
