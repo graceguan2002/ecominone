@@ -183,10 +183,11 @@ export async function GET() {
         const sql = getSql();
         await ensureTable(sql);
 
-        const rows = await sql`
-            SELECT config FROM ${sql(TABLE_NAME)}
-            WHERE key = ${CONFIG_KEY}
-        `;
+        // 表名是字面量常量，安全拼接
+        const rows = await sql(
+            `SELECT config FROM ${TABLE_NAME} WHERE key = $1`,
+            [CONFIG_KEY]
+        );
 
         let config = {};
         if (rows.length > 0 && rows[0].config) {
@@ -254,12 +255,13 @@ export async function POST(request) {
         const sql = getSql();
         await ensureTable(sql);
 
-        await sql`
-            INSERT INTO ${sql(TABLE_NAME)} (key, config, updated_at)
-            VALUES (${CONFIG_KEY}, ${JSON.stringify(config)}, NOW())
-            ON CONFLICT (key)
-            DO UPDATE SET config = EXCLUDED.config, updated_at = NOW()
-        `;
+        await sql(
+            `INSERT INTO ${TABLE_NAME} (key, config, updated_at)
+             VALUES ($1, $2::jsonb, NOW())
+             ON CONFLICT (key) DO UPDATE
+             SET config = EXCLUDED.config, updated_at = NOW()`,
+            [CONFIG_KEY, JSON.stringify(config)]
+        );
 
         return new Response(JSON.stringify({
             success: true,
@@ -294,10 +296,10 @@ export async function DELETE() {
         const sql = getSql();
         await ensureTable(sql);
 
-        await sql`
-            DELETE FROM ${sql(TABLE_NAME)}
-            WHERE key = ${CONFIG_KEY}
-        `;
+        await sql(
+            `DELETE FROM ${TABLE_NAME} WHERE key = $1`,
+            [CONFIG_KEY]
+        );
 
         return new Response(JSON.stringify({
             success: true,
