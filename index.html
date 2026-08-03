@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- 密码验证遮罩 -->
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <div class="auth-icon">◆</div>
+            <h2 class="auth-title">电商全景系统</h2>
+            <p class="auth-subtitle">请输入访问密码</p>
+            <input type="password" id="auth-input" class="auth-input" placeholder="输入密码..." maxlength="20" />
+            <p class="auth-error" id="auth-error"></p>
+            <button class="auth-btn" id="auth-btn">验证进入</button>
+        </div>
+    </div>
+
     <!-- 顶部标题栏 -->
     <header class="topbar">
         <div class="topbar-left">

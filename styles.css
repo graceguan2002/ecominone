@@ -28,6 +28,101 @@
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ============== 密码验证遮罩 ============== */
+#auth-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+}
+
+.auth-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 40px 36px;
+    text-align: center;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-icon {
+    font-size: 36px;
+    color: var(--accent-green);
+    margin-bottom: 12px;
+}
+
+.auth-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
+    transition: var(--transition);
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.auth-input:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(86, 211, 100, 0.15);
+}
+
+.auth-input::placeholder {
+    color: var(--text-tertiary);
+    letter-spacing: 0;
+}
+
+.auth-error {
+    font-size: 12px;
+    color: var(--accent-red);
+    margin-top: 8px;
+    min-height: 18px;
+    line-height: 18px;
+}
+
+.auth-btn {
+    margin-top: 18px;
+    width: 100%;
+    padding: 12px 0;
+    background: var(--accent-green);
+    color: #0d1117;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.auth-btn:hover {
+    filter: brightness(1.1);
+}
+
+.auth-btn:active {
+    transform: scale(0.98);
+}
+
 html, body {
     background: var(--bg-primary);
     color: var(--text-primary);

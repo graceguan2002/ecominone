@@ -1,6 +1,41 @@
-/* ============== 集成管理系统 · 交互脚本 ============== */
+/* ============== 电商全景系统 · 交互脚本 ============== */
 (function () {
     'use strict';
+
+    // ---------- 密码验证 ----------
+    (function initAuth() {
+        const CORRECT_PASSWORD = 'admin123';
+        const overlay = document.getElementById('auth-overlay');
+        const input = document.getElementById('auth-input');
+        const btn = document.getElementById('auth-btn');
+        const error = document.getElementById('auth-error');
+
+        // 已通过验证则跳过
+        if (sessionStorage.getItem('auth_passed') === '1') {
+            if (overlay) overlay.style.display = 'none';
+            return;
+        }
+
+        function tryLogin() {
+            const val = input.value.trim();
+            if (val === CORRECT_PASSWORD) {
+                sessionStorage.setItem('auth_passed', '1');
+                overlay.style.display = 'none';
+            } else {
+                error.textContent = '密码错误，请重试';
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        if (btn) btn.addEventListener('click', tryLogin);
+        if (input) input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') tryLogin();
+        });
+
+        // 确保遮罩可见
+        if (overlay) overlay.style.display = 'flex';
+    })();
 
     const STORAGE_KEY = 'integrated-system-config-v4';
     const API_BASE = '/api/config';
