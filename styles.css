@@ -427,6 +427,11 @@ code {
     border-left: 2px solid var(--border-color);
 }
 
+/* 空列表不显示占位 */
+.card-list:empty {
+    display: none;
+}
+
 .card-list li {
     font-size: 12px;
     color: var(--text-secondary);
