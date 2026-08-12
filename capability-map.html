@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务商能力库 · 指标图谱</title>
+<style>
+:root {
+  --bg: #0f1419;
+  --bg-card: #1a1f2e;
+  --bg-hover: #242b3d;
+  --border: #2a3040;
+  --text: #e4e8f1;
+  --text2: #8892a8;
+  --text3: #5a6478;
+  --blue: #5b9cf5;
+  --cyan: #3ec9d6;
+  --green: #4ecb71;
+  --orange: #f5a542;
+  --purple: #9b7cf4;
+  --red: #f56262;
+  --pink: #f07bab;
+  --teal: #3db8a0;
+  --yellow: #e8c84a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  padding: 24px 32px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header-left h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.header-left .sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+.header-stats {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.header-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.header-stats strong {
+  color: var(--text);
+  font-size: 18px;
+}
+.badge-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+.badge-tag.system { background: rgba(94,159,245,0.15); color: var(--blue); }
+.badge-tag.manual { background: rgba(245,165,66,0.15); color: var(--orange); }
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  padding: 8px 32px;
+  font-size: 12px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+}
+
+/* Main layout */
+.main {
+  display: flex;
+  height: calc(100vh - 140px);
+}
+
+/* Left: Tree panel */
+.tree-panel {
+  width: 340px;
+  min-width: 300px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.tree-domain {
+  margin: 0;
+}
+.tree-domain > .tree-domain-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: background .15s;
+  border-left: 3px solid transparent;
+}
+.tree-domain > .tree-domain-head:hover {
+  background: var(--bg-hover);
+}
+.tree-domain.active > .tree-domain-head {
+  background: var(--bg-hover);
+  border-left-color: var(--blue);
+}
+.tree-domain-head .icon {
+  font-size: 16px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.tree-domain-head .arrow {
+  font-size: 10px;
+  color: var(--text3);
+  transition: transform .2s;
+  width: 14px;
+  flex-shrink: 0;
+}
+.tree-domain.expanded > .tree-domain-head .arrow {
+  transform: rotate(90deg);
+}
+.tree-domain-head .count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text3);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 400;
+}
+.tree-domain-body {
+  display: none;
+  padding: 0 0 4px 24px;
+}
+.tree-domain.expanded > .tree-domain-body {
+  display: block;
+}
+
+.tree-sub {
+  margin: 2px 0;
+}
+.tree-sub-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  border-radius: 4px;
+  transition: all .15s;
+}
+.tree-sub-head:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.tree-sub.active > .tree-sub-head {
+  background: rgba(94,159,245,0.08);
+  color: var(--blue);
+}
+.tree-sub-head .sub-arrow {
+  font-size: 9px;
+  transition: transform .2s;
+  width: 12px;
+  flex-shrink: 0;
+}
+.tree-sub.expanded > .tree-sub-head .sub-arrow {
+  transform: rotate(90deg);
+}
+.tree-sub-head .sub-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text3);
+}
+.tree-sub-items {
+  display: none;
+  padding: 0 0 2px 20px;
+}
+.tree-sub.expanded > .tree-sub-items {
+  display: block;
+}
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all .15s;
+}
+.tree-item:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.tree-item.active {
+  color: var(--cyan);
+  background: rgba(62,201,214,0.06);
+}
+.tree-item .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tree-item .dot.system { background: var(--blue); }
+.tree-item .dot.manual { background: var(--orange); }
+
+/* Right: Detail panel */
+.detail-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  font-size: 14px;
+  flex-direction: column;
+  gap: 8px;
+}
+.detail-empty .big-icon {
+  font-size: 48px;
+  opacity: .3;
+}
+
+/* Detail content */
+.detail-header {
+  margin-bottom: 28px;
+}
+.detail-header .breadcrumb {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.detail-header .breadcrumb span {
+  color: var(--text2);
+}
+.detail-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+.detail-header .meta {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 6px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Overview stats (domain level) */
+.domain-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.overview-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  transition: all .2s;
+}
+.overview-card:hover {
+  border-color: var(--blue);
+  background: var(--bg-hover);
+}
+.overview-card .card-label {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.overview-card .card-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.overview-card .card-sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+/* Indicators table (sub level) */
+.indicators-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.indicators-table thead th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+}
+.indicators-table tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(42,48,64,0.4);
+  vertical-align: top;
+}
+.indicators-table tbody tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+.indicators-table .idx {
+  color: var(--text3);
+  width: 30px;
+  font-size: 12px;
+}
+.indicators-table .name {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 160px;
+}
+.indicators-table .def {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 480px;
+}
+.indicators-table .tag-cell {
+  text-align: center;
+}
+.indicators-table .source-cell {
+  text-align: center;
+}
+
+.tag-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-pill.通用 { background: rgba(78,203,113,0.12); color: var(--green); }
+.tag-pill.品牌 { background: rgba(155,124,244,0.12); color: var(--purple); }
+.tag-pill.电商 { background: rgba(62,201,214,0.12); color: var(--cyan); }
+
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+.source-pill.系统 { background: rgba(94,159,245,0.1); color: var(--blue); }
+.source-pill.人工 { background: rgba(245,165,66,0.1); color: var(--orange); }
+.source-pill::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.source-pill.系统::before { background: var(--blue); }
+.source-pill.人工::before { background: var(--orange); }
+
+/* Full-domain map */
+.map-section {
+  margin-top: 24px;
+}
+.map-section h3 {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.domain-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.domain-card:hover {
+  border-color: var(--blue);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.domain-card .dc-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.domain-card .dc-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+.domain-card .dc-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+.domain-card .dc-subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.domain-card .dc-sub-tag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.domain-card .dc-footer {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--text3);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 900px) {
+  .main { flex-direction: column; }
+  .tree-panel { width: 100%; min-width: unset; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .domain-grid { grid-template-columns: 1fr; }
+  .domain-overview { grid-template-columns: 1fr 1fr; }
+}
+
+.domain-colors {
+  --c0: #5b9cf5;
+  --c1: #9b7cf4;
+  --c2: #4ecb71;
+  --c3: #f5a542;
+  --c4: #f07bab;
+  --c5: #3ec9d6;
+  --c6: #e8c84a;
+  --c7: #f56262;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>服务商能力库 · 指标全景图谱</h1>
+    <div class="sub">基于能力域 → 子板块 → 指标三层结构，层层下钻查看详情</div>
+  </div>
+  <div class="header-stats" id="headerStats"></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span> 系统获取</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--orange)"></span> 人工采集</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span> 通用指标</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--cyan)"></span> 电商指标</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span> 品牌指标</div>
+</div>
+
+<div class="main">
+  <!-- Left tree -->
+  <div class="tree-panel" id="treePanel"></div>
+
+  <!-- Right detail -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-empty">
+      <div class="big-icon">⬡</div>
+      <div>选择左侧能力域或子板块查看详情</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"name": "整体情况摸排", "subs": [{"name": "ADQ情况", "items": [{"name": "投放消耗总规模", "def": "服务商在平台上的投放消耗金额总量（by季度/年度）+日均消耗", "tag": "通用", "source": "系统"}, {"name": "主体关联账户数", "def": "实控多少账户？", "tag": "通用", "source": "系统"}, {"name": "主体下活跃客户数", "def": "实际跑多少客户？", "tag": "通用", "source": "系统"}, {"name": "ADQ团队人数", "def": "全职做ADQ的团队人数有多少？同时多平台兼职一起做的人有多少？", "tag": "通用", "source": "人工"}, {"name": "行业集中度/主攻行业方向", "def": "服务商在特定行业的消耗集中程度及主攻的行业方向（1-2个核心行业）", "tag": "通用", "source": "系统"}]}, {"name": "竞媒业务能力", "items": [{"name": "合作媒体", "def": "服务商和哪些媒体有合作？（字节/快手/百度/小红书/...）分别是一代/二代？", "tag": "通用", "source": "系统"}, {"name": "竞媒规模", "def": "服务商在竞争媒体平台的业务存在和能力，包括竞媒代理牌照、消耗规模、服务客户等", "tag": "通用", "source": "人工"}, {"name": "竞媒牌照/工具认证", "def": "服务商在竞媒的认证（千川/巨量/快手/云图/灵犀/蒲公英/星图）", "tag": "通用", "source": "人工"}, {"name": "竞媒服务客户名单", "def": "服务商在竞媒平台上具体服务的品牌/客户名称清单", "tag": "通用", "source": "人工"}]}, {"name": "腾讯生态非ADQ业务能力", "items": [{"name": "非ADQ规模", "def": "微信豆、全域通、小店加热类规模", "tag": "电商", "source": "人工"}, {"name": "小店牌照", "def": "服务商在小店的认证等级", "tag": "电商", "source": "系统"}, {"name": "腾讯生态下非ADQ服务客户名单", "def": "服务商在全域通具体服务的品牌/客户名称清单", "tag": "电商", "source": "人工"}]}]}, {"name": "获客拓客能力", "subs": [{"name": "拓客能力", "items": [{"name": "BD团队规模", "def": "服务商是否配置了专职从事商务拓展(BD)的人员岗位或独立获客团队", "tag": "通用", "source": "人工"}, {"name": "新签客户数", "def": "服务商通过主动拓客带来的新客户数量（区别于平台分配）。\n品牌侧按年度统计，电商侧按季度有效新客统计。", "tag": "通用", "source": "系统"}, {"name": "非品牌有效新客数", "def": "服务商近1季度获取的非品牌类有效新客户数量", "tag": "电商", "source": "系统"}, {"name": "销售合伙人配置", "def": "服务商有多少优质被认证的销售人才", "tag": "电商", "source": "系统"}]}, {"name": "获客方式", "items": [{"name": "BD拓客方式记录", "def": "服务商BD拓客的具体方式分类（圈层/展会/竞媒引入/冷拓/转介绍等）", "tag": "通用", "source": "人工"}, {"name": "品牌客户案例详情(结构化)", "def": "服务商提供的品牌客户案例详情：品牌名×行业×消耗级别。出一份客户案例时需要的完整数据：客户GMV、代播/自播情况、公私域联动情况、投放预算及ROI", "tag": "通用", "source": "人工"}, {"name": "竞媒迁移成功案例", "def": "服务商从竞媒平台迁移到本平台的客户案例及对应消耗。案例需包含：迁移前平台GMV、迁移后本平台GMV、代播情况变化、公私域经营对比", "tag": "通用", "source": "人工"}, {"name": "产业带名称/地域", "def": "服务商深耕的产业带具体位置（如义乌小商品/广州白云化妆品等）", "tag": "电商", "source": "人工"}, {"name": "产业带对应品类", "def": "产业带对应的商品品类，需匹配到一级行业", "tag": "电商", "source": "人工"}, {"name": "地推方式", "def": "服务商在产业带的地推方式（扫楼/会销/协会批量/展会邀约等）", "tag": "电商", "source": "人工"}, {"name": "地推人员数量", "def": "服务商本地BD地推团队的人数", "tag": "电商", "source": "人工"}, {"name": "电销团队配置", "def": "服务商是否设有电销团队及团队人数", "tag": "电商", "source": "人工"}, {"name": "电销周可承受线索量", "def": "服务商电销团队每周能承接的线索数量上限", "tag": "电商", "source": "人工"}, {"name": "电销转化率", "def": "电销线索转化为有效客户的比例", "tag": "电商", "source": "人工"}, {"name": "电销行业方向", "def": "服务商电销团队主攻的客户行业方向", "tag": "电商", "source": "人工"}]}]}, {"name": "客户经营与增长", "subs": [{"name": "客户经营能力", "items": [{"name": "大客户数量/占比", "def": "服务商服务的高价值/品牌级别客户的数量及在总客户中的占比。\n品牌侧以消耗>3000w为界，电商侧以P序列/KA/新锐分级。", "tag": "通用", "source": "系统"}, {"name": "品牌有效客户数(≥500w)", "def": "年度有效消耗≥500万的客户个数", "tag": "品牌", "source": "系统"}, {"name": "客户续约/留存率", "def": "服务商客户的持续合作/复投比例，包括大客户续约率、预算续投率、新客首月存活率等细分口径", "tag": "通用", "source": "系统"}, {"name": "行业深耕非数据证据", "def": "腾讯生态下服务商在行业深耕方面的非数据类证据，如奖项/案例/垂直榜单/方法论等", "tag": "通用", "source": "人工"}, {"name": "运营合伙人配置", "def": "服务商有多少优质被认证的运营人才", "tag": "电商", "source": "系统"}, {"name": "消耗同比增长率", "def": "服务商当年总消耗相比去年的增长率", "tag": "通用", "source": "系统"}]}, {"name": "新客孵化能力", "items": [{"name": "新客首月存活率", "def": "新客在首月仍有消耗的比例", "tag": "电商", "source": "系统"}, {"name": "孵化成功案例", "def": "服务商孵化的客户案例：客户名×起始消耗→当前消耗。案例需包含：孵化期GMV增长曲线、代播支持记录、公私域转化路径、关键运营动作节点", "tag": "电商", "source": "人工"}, {"name": "案例客户消耗增长轨迹", "def": "服务商服务期间客户从起始消耗到当前消耗的增长变化", "tag": "电商", "source": "系统"}, {"name": "小单元(孵化类)参与记录", "def": "服务商参与过平台孵化类小单元项目的记录", "tag": "电商", "source": "系统"}]}]}, {"name": "广告投放能力", "subs": [{"name": "投放执行能力", "items": [{"name": "优化师/投手团队规模", "def": "服务商负责广告投放执行（ADQ/千川等）的优化师或投手团队人数", "tag": "通用", "source": "人工"}, {"name": "代运营占比", "def": "是否有代投", "tag": "电商", "source": "系统"}]}, {"name": "投放运营细节", "items": [{"name": "代投客户案例", "def": "服务商代投服务的客户案例：客户名×行业×投放效果。案例需包含：投放期GMV数据、代投前后对比、公域引流与私域承接情况", "tag": "电商", "source": "人工"}, {"name": "客户投放CTR/ROI", "def": "服务商为客户投放产生的点击率和投资回报率效果数据（仅查看重点客户）", "tag": "电商", "source": "系统"}]}]}, {"name": "素材与内容能力", "subs": [{"name": "素材生产能力", "items": [{"name": "自有创意/素材团队", "def": "服务商是否拥有自有创意/素材制作剪辑团队（区别于外包），包括团队人数", "tag": "通用", "source": "人工"}, {"name": "素材产能规模", "def": "服务商素材生产的产出量级，品牌侧按年度条数统计，电商侧按日产条数统计", "tag": "通用", "source": "人工"}, {"name": "素材类型覆盖", "def": "服务商能制作的素材/内容形态种类，如口播/混剪/实拍/AI生成/图文/短视频/TVC/直播等", "tag": "通用", "source": "人工"}, {"name": "爆款素材率", "def": "产出素材中达到爆款标准（消耗超过设定阈值）的比例", "tag": "通用", "source": "系统"}, {"name": "素材单条成本", "def": "服务商制作单条素材的平均成本（元/条）", "tag": "通用", "source": "人工"}]}, {"name": "内容效果精细指标", "items": [{"name": "达人内容策划力", "def": "服务商能否根据达人人设定制创意脚本方案", "tag": "品牌", "source": "人工"}, {"name": "直播创作能力", "def": "服务商是否能帮助达人运营直播间或创作热点直播间", "tag": "品牌", "source": "人工"}, {"name": "原创脚本能力", "def": "服务商是否具备自撰原创广告/招商脚本的能力", "tag": "品牌", "source": "人工"}, {"name": "二次创作/裂变能力", "def": "一条素材能否多剪、再加工、裂变复用的能力", "tag": "品牌", "source": "人工"}, {"name": "内容交付时效", "def": "从接收brief到成片交付的平均周期（天数）", "tag": "品牌", "source": "人工"}, {"name": "行业内容奖项", "def": "服务商在内容/创意类行业奖项中的获奖情况", "tag": "品牌", "source": "系统"}, {"name": "行业标杆案例数", "def": "被认定为行业标杆的案例个数", "tag": "品牌", "source": "人工"}, {"name": "素材CTR(平均点击率)", "def": "服务商投放素材的平均点击率", "tag": "通用", "source": "系统"}, {"name": "素材完播率", "def": "服务商投放素材的平均3s/5s完播率", "tag": "品牌", "source": "系统"}]}]}, {"name": "达人/内容营销能力", "subs": [{"name": "达人/内容营销能力", "items": [{"name": "达人/MCN资源规模", "def": "服务商是否拥有自管MCN机构或深度绑定的达人资源池，以及签约/可建联达人数量规模", "tag": "通用", "source": "人工"}, {"name": "达人合作模式", "def": "达人是签约的还是合作的？签约=强控制 合作=弱关系", "tag": "通用", "source": "人工"}]}, {"name": "达人撮合细节", "items": [{"name": "达播案例(结构化)", "def": "服务商达人直播的案例详情：达人名×客户×品类×GMV。案例需包含：直播场次GMV、达播与代播协同情况、直播公私域流量配比", "tag": "电商", "source": "人工"}, {"name": "达人行业覆盖", "def": "服务商达人资源覆盖的商品品类范围", "tag": "电商", "source": "人工"}, {"name": "达播场均GMV", "def": "服务商达人直播的场均GMV效果数据", "tag": "电商", "source": "系统"}, {"name": "达人能力子类型区分", "def": "服务商达人业务的具体模式：MCN代播型 vs 撮合投流型（两种完全不同的能力）", "tag": "电商", "source": "人工"}]}]}, {"name": "品牌策略能力", "subs": [{"name": "品牌策划能力", "items": [{"name": "独立策划/策略部门", "def": "服务商是否设有独立于BD/投放的策划或策略团队，负责品牌方案输出而非商务谈判", "tag": "品牌", "source": "人工"}, {"name": "策划团队规模", "def": "策划/策略岗位的人数", "tag": "品牌", "source": "人工"}, {"name": "策略驱动客户渗透率", "def": "使用优策略标的的客户数÷总客户数，衡量策略方案对客户的影响面", "tag": "品牌", "source": "系统"}, {"name": "互选商单策略能力", "def": "服务商能否为品牌客户设计达人组合方案和种草节奏策略", "tag": "品牌", "source": "人工"}, {"name": "整合营销落地项目数", "def": "服务商成功执行的整合营销项目数量", "tag": "品牌", "source": "人工"}, {"name": "IP合作项目数量", "def": "合约中约定的合作IP项目总数", "tag": "品牌", "source": "系统"}, {"name": "IP消耗完成个数", "def": "已完成权益验收并进入结算流程的IP项目数", "tag": "品牌", "source": "系统"}]}, {"name": "平台产品深度使用", "items": [{"name": "优品渗透率", "def": "使用过优品的客户数÷全量客户数", "tag": "品牌", "source": "系统"}, {"name": "优品使用率(消耗额)", "def": "优品相关的投放消耗金额规模", "tag": "品牌", "source": "系统"}, {"name": "优品种类使用数", "def": "服务商使用了几种不同类型的优品", "tag": "品牌", "source": "系统"}, {"name": "新品渗透率", "def": "使用过新品的客户数÷全量客户数", "tag": "品牌", "source": "系统"}, {"name": "新品使用率(消耗额)", "def": "新品相关的投放消耗金额规模", "tag": "品牌", "source": "系统"}, {"name": "新品种类使用数", "def": "服务商使用了几种不同类型的新品", "tag": "品牌", "source": "系统"}]}, {"name": "PCAD框架合作", "items": [{"name": "是否签订PCAD框架协议", "def": "服务商是否与平台签订了年度PCAD框架协议", "tag": "品牌", "source": "系统"}, {"name": "PCAD框架签约金额", "def": "PCAD框架协议的签约金额规模", "tag": "品牌", "source": "系统"}, {"name": "上年PCAD框架完成度", "def": "去年PCAD框架实际跑出的完成比例", "tag": "品牌", "source": "系统"}]}, {"name": "如翼平台使用", "items": [{"name": "如翼策略消耗率", "def": "如翼策略在服务商投放消耗中的渗透率", "tag": "品牌", "source": "系统"}, {"name": "员工使用如翼活跃度(频次)", "def": "服务商员工登录使用如翼平台的频率", "tag": "品牌", "source": "系统"}, {"name": "员工使用如翼活跃度(时长)", "def": "服务商员工登录使用如翼平台的时长", "tag": "品牌", "source": "系统"}, {"name": "客户使用如翼活跃度(频次)", "def": "服务商客户使用如翼平台的频率", "tag": "品牌", "source": "系统"}, {"name": "客户使用如翼活跃度(时长)", "def": "服务商客户使用如翼平台的时长", "tag": "品牌", "source": "系统"}, {"name": "如翼旗舰版开通比例", "def": "开通如翼旗舰版的客户数÷总客户数", "tag": "品牌", "source": "系统"}, {"name": "如翼行业心智共建参与数", "def": "服务商参与如翼行业心智共建的行业数量", "tag": "品牌", "source": "系统"}, {"name": "如翼行业R0人群共建数", "def": "服务商参与共建的R0人群数量", "tag": "品牌", "source": "系统"}, {"name": "一方人群运营ocpx消耗", "def": "服务商在一方人群相关ocpx投放上的消耗金额", "tag": "品牌", "source": "系统"}, {"name": "互选加热方法论共建数", "def": "服务商参与互选加热方法论共建的项目个数", "tag": "品牌", "source": "系统"}]}, {"name": "品牌全案/DP能力", "items": [{"name": "多能力同时覆盖", "def": "服务商是否同时具备代投+代播+素材中至少2项能力", "tag": "电商", "source": "人工"}, {"name": "品牌全案案例详情", "def": "服务商为品牌客户提供全案服务的案例：品牌名×服务内容×时长×结果。案例需包含：全案服务期GMV全景、代播/自播组合策略、公私域一体化方案及效果数据", "tag": "电商", "source": "人工"}, {"name": "商业合作模式", "def": "服务商与客户的商业合作方式（月费/佣金/对赌等）", "tag": "电商", "source": "人工"}]}]}, {"name": "数据与技术能力", "subs": [{"name": "数据技术能力", "items": [{"name": "中台/数据分析团队", "def": "服务商是否设有专职的数据中台或数据分析团队", "tag": "通用", "source": "人工"}, {"name": "数据大赛获奖", "def": "服务商在数据营销/分析类大赛中的获奖情况", "tag": "品牌", "source": "人工"}, {"name": "自建SaaS/CRM/DMP平台", "def": "服务商是否自建了云端数据管理平台（SaaS/CRM/DMP等）", "tag": "通用", "source": "人工"}]}, {"name": "AI能力", "items": [{"name": "AI Agent自研情况", "def": "服务商是否有自研的AI Agent能力（对内提效或对外服务），是什么", "tag": "通用", "source": "人工"}, {"name": "技术团队规模", "def": "技术团队人数", "tag": "通用", "source": "人工"}, {"name": "AI年度投入预算", "def": "服务商在AI方面的年度投入预算（如人均/总AI可用token数量）", "tag": "通用", "source": "人工"}]}]}, {"name": "直播与分销能力", "subs": [{"name": "直播能力体系", "items": [{"name": "自有直播间", "def": "服务商是否拥有自有直播间及所在城市", "tag": "电商", "source": "人工"}, {"name": "代播能力", "def": "服务商是否具备为客户提供代播服务的条件", "tag": "电商", "source": "人工"}, {"name": "代播客户案例", "def": "服务商代播服务的客户案例：客户名×品类×直播形式×结果。案例需包含：代播场次及GMV明细、品牌自播与代播对比、直播间公私域流量构成", "tag": "电商", "source": "人工"}, {"name": "主播/运营团队规模", "def": "服务商的主播和直播运营团队人数", "tag": "电商", "source": "人工"}, {"name": "直播投手配置", "def": "服务商是否为直播业务配置了专门的投手", "tag": "电商", "source": "人工"}, {"name": "同时承接直播间数量", "def": "服务商能同时管理的直播间数量上限（产能上限）", "tag": "电商", "source": "人工"}, {"name": "直播GMV/消耗数据", "def": "服务商直播业务产生的GMV和消耗效果数据", "tag": "电商", "source": "人工"}, {"name": "参与过的大场记录", "def": "服务商参与过的大型直播场次记录（展会/溯源/造节等）", "tag": "电商", "source": "人工"}, {"name": "场景化直播设施", "def": "服务商是否拥有场景化直播设施（仓库/原产地/展会展位等）", "tag": "电商", "source": "人工"}, {"name": "大场GMV/消耗", "def": "服务商单场大型直播活动的GMV和消耗效果数据", "tag": "电商", "source": "系统"}]}, {"name": "KOC/团长分销", "items": [{"name": "KOC/团长网络", "def": "服务商是否拥有KOC或团长分销网络", "tag": "电商", "source": "人工"}, {"name": "KOC可调动量级", "def": "服务商可调动的KOC数量规模", "tag": "电商", "source": "人工"}, {"name": "KOC行业/品类覆盖", "def": "服务商KOC资源覆盖的商品品类", "tag": "电商", "source": "人工"}, {"name": "分销案例", "def": "服务商通过KOC/团长分销的成功案例：客户×品×GMV。案例需包含：分销GMV及订单量、代播与分销协同情况、公域引流到私域成交路径", "tag": "电商", "source": "人工"}, {"name": "分销模式", "def": "服务商采用的分销模式（短视频/社群/直播等）", "tag": "电商", "source": "人工"}, {"name": "KOC机构属性", "def": "服务商是否以KOC分销为主业的机构", "tag": "电商", "source": "人工"}]}]}, {"name": "供应链与货品能力", "subs": [{"name": "供应链/货品能力", "items": [{"name": "品牌授权", "def": "服务商拥有的品牌授权名单及授权类型", "tag": "电商", "source": "人工"}, {"name": "经销资源", "def": "服务商合作的经销商网络及货盘品类", "tag": "电商", "source": "人工"}, {"name": "供应链关系(工厂/供应商)", "def": "服务商是否与工厂或供应商建立了合作关系", "tag": "电商", "source": "人工"}, {"name": "小单元(贴牌分销)参与", "def": "服务商参与过平台贴牌分销小单元项目的记录", "tag": "电商", "source": "系统"}, {"name": "供应链资源描述", "def": "服务商拥有的供应链资源具体描述（工厂/白牌/货源）", "tag": "电商", "source": "人工"}, {"name": "产业带货品供给", "def": "服务商在产业带能提供的具体货品品类及地域", "tag": "电商", "source": "人工"}, {"name": "自有品牌/白牌", "def": "服务商是否拥有自有品牌或白牌货品", "tag": "电商", "source": "人工"}, {"name": "货盘品类", "def": "服务商能提供的货品品类范围", "tag": "电商", "source": "人工"}]}]}];
+
+const COLORS = ['#5b9cf5','#9b7cf4','#4ecb71','#f5a542','#f07bab','#3ec9d6','#e8c84a','#f56262'];
+const ICONS = ['📊','🎯','📈','🔍','🛠️','🎪','📦','🔗'];
+
+function init() {
+  const stats = computeStats();
+  document.getElementById('headerStats').innerHTML = `
+    <span>能力域 <strong>${stats.domains}</strong></span>
+    <span>子板块 <strong>${stats.subs}</strong></span>
+    <span>指标 <strong>${stats.items}</strong></span>
+    <span><span class="badge-tag system">系统</span> ${stats.system}</span>
+    <span><span class="badge-tag manual">人工</span> ${stats.manual}</span>
+  `;
+
+  renderTree();
+  renderFullMap();
+}
+
+function computeStats() {
+  let subs = 0, items = 0, system = 0, manual = 0;
+  DATA.forEach(d => {
+    subs += d.subs.length;
+    d.subs.forEach(s => {
+      items += s.items.length;
+      s.items.forEach(i => {
+        if (i.source === '系统') system++;
+        else manual++;
+      });
+    });
+  });
+  return { domains: DATA.length, subs, items, system, manual };
+}
+
+function renderTree() {
+  const panel = document.getElementById('treePanel');
+  panel.innerHTML = DATA.map((d, di) => {
+    const color = COLORS[di % COLORS.length];
+    const icon = ICONS[di % ICONS.length];
+    const itemCount = d.subs.reduce((sum, s) => sum + s.items.length, 0);
+    return `
+    <div class="tree-domain expanded" data-di="${di}">
+      <div class="tree-domain-head" onclick="toggleDomain(this)" style="--c:${color}">
+        <span class="arrow">▶</span>
+        <span class="icon">${icon}</span>
+        <span>${d.name}</span>
+        <span class="count">${itemCount}</span>
+      </div>
+      <div class="tree-domain-body">
+        ${d.subs.map((s, si) => `
+        <div class="tree-sub" data-di="${di}" data-si="${si}">
+          <div class="tree-sub-head" onclick="clickSub(event, ${di}, ${si})">
+            <span class="sub-arrow">▶</span>
+            <span>${s.name}</span>
+            <span class="sub-count">${s.items.length}</span>
+          </div>
+          <div class="tree-sub-items">
+            ${s.items.map((item, ii) => `
+            <div class="tree-item" data-di="${di}" data-si="${si}" data-ii="${ii}" onclick="clickItem(event, ${di}, ${si}, ${ii})">
+              <span class="dot ${item.source==='系统'?'system':'manual'}"></span>
+              <span>${item.name}</span>
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDomain(head) {
+  const domain = head.parentElement;
+  domain.classList.toggle('expanded');
+}
+
+function clickSub(e, di, si) {
+  e.stopPropagation();
+  const sub = e.target.closest('.tree-sub');
+  sub.classList.toggle('expanded');
+  // Highlight and show detail
+  document.querySelectorAll('.tree-sub').forEach(s => s.classList.remove('active'));
+  sub.classList.add('active');
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+  showSubDetail(di, si);
+}
+
+function clickItem(e, di, si, ii) {
+  e.stopPropagation();
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.tree-sub').forEach(s => s.classList.remove('active'));
+  const item = e.target.closest('.tree-item');
+  item.classList.add('active');
+  const sub = item.closest('.tree-sub');
+  sub.classList.add('expanded', 'active');
+  showItemDetail(di, si, ii);
+}
+
+function showDomainDetail(di) {
+  const d = DATA[di];
+  const color = COLORS[di % COLORS.length];
+  const panel = document.getElementById('detailPanel');
+  const allItems = [];
+  d.subs.forEach(s => s.items.forEach(i => allItems.push({sub: s.name, ...i})));
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="breadcrumb">能力域</div>
+      <h2>${d.name}</h2>
+      <div class="meta">
+        <span>${d.subs.length} 个子板块</span>
+        <span>·</span>
+        <span>${allItems.length} 个指标</span>
+      </div>
+    </div>
+    <div class="domain-overview">
+      ${d.subs.map(s => `
+      <div class="overview-card" onclick="clickSubByData('${d.name}','${s.name}')" style="cursor:pointer">
+        <div class="card-label">${s.name}</div>
+        <div class="card-value">${s.items.length}</div>
+        <div class="card-sub">个指标</div>
+      </div>`).join('')}
+    </div>
+    <div class="map-section">
+      <h3>全部指标一览</h3>
+      ${buildTable(allItems)}
+    </div>
+  `;
+}
+
+function showSubDetail(di, si) {
+  const d = DATA[di];
+  const s = d.subs[si];
+  const color = COLORS[di % COLORS.length];
+  const panel = document.getElementById('detailPanel');
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="breadcrumb"><span>${d.name}</span> / 子板块</div>
+      <h2>${s.name}</h2>
+      <div class="meta">
+        <span>${s.items.length} 个指标</span>
+      </div>
+    </div>
+    ${buildTable(s.items)}
+  `;
+}
+
+function showItemDetail(di, si, ii) {
+  const item = DATA[di].subs[si].items[ii];
+  const d = DATA[di];
+  const s = d.subs[si];
+  const panel = document.getElementById('detailPanel');
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="breadcrumb"><span>${d.name}</span> / <span>${s.name}</span> / 指标</div>
+      <h2>${item.name}</h2>
+      <div class="meta">
+        <span class="tag-pill ${item.tag}">${item.tag}</span>
+        <span>·</span>
+        <span class="source-pill ${item.source}">${item.source}获取</span>
+      </div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">指标定义</div>
+      <div style="font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;">${item.def}</div>
+    </div>
+    <div style="margin-top:20px;">
+      <button onclick="showSubDetail(${di},${si})" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">← 返回子板块全部指标</button>
+    </div>
+  `;
+}
+
+function clickSubByData(domainName, subName) {
+  const di = DATA.findIndex(d => d.name === domainName);
+  const si = DATA[di].subs.findIndex(s => s.name === subName);
+  if (di >= 0 && si >= 0) {
+    showSubDetail(di, si);
+    // Sync tree
+    document.querySelectorAll('.tree-sub').forEach(el => el.classList.remove('active'));
+    const subEl = document.querySelector(`.tree-sub[data-di="${di}"][data-si="${si}"]`);
+    if (subEl) {
+      subEl.classList.add('expanded', 'active');
+      const domainEl = subEl.closest('.tree-domain');
+      if (domainEl) domainEl.classList.add('expanded');
+      subEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function buildTable(items) {
+  return `
+  <table class="indicators-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>指标名称</th>
+        <th>指标定义</th>
+        <th>标签</th>
+        <th>获取途径</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${items.map((item, idx) => `
+      <tr>
+        <td class="idx">${idx + 1}</td>
+        <td class="name">${item.name}</td>
+        <td class="def">${item.def}</td>
+        <td class="tag-cell"><span class="tag-pill ${item.tag}">${item.tag}</span></td>
+        <td class="source-cell"><span class="source-pill ${item.source}">${item.source}</span></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderFullMap() {
+  // Add domain click handlers for the full map view when first entering
+  document.querySelectorAll('.tree-domain-head').forEach((head, di) => {
+    head.addEventListener('dblclick', () => showDomainDetail(di));
+    // Single click with Ctrl to show detail
+    head.addEventListener('click', function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        showDomainDetail(di);
+      }
+    });
+  });
+}
+
+init();
+</script>
+</body>
+</html>
