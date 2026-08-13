@@ -2,40 +2,181 @@
 (function () {
     'use strict';
 
-    // ---------- 密码验证 ----------
-    (function initAuth() {
-        const CORRECT_PASSWORD = 'admin123';
-        const overlay = document.getElementById('auth-overlay');
-        const input = document.getElementById('auth-input');
-        const btn = document.getElementById('auth-btn');
-        const error = document.getElementById('auth-error');
+    // ---------- 企业微信身份认证 ----------
+    const AUTH_STORAGE_KEY = 'ecominone_user';
+    let wwLoginInstance = null;
 
-        // 已通过验证则跳过
-        if (sessionStorage.getItem('auth_passed') === '1') {
-            if (overlay) overlay.style.display = 'none';
+    function getStoredUser() {
+        try {
+            const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setStoredUser(user) {
+        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    }
+
+    function clearStoredUser() {
+        sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+
+    function renderUserArea() {
+        const user = getStoredUser();
+        const loginBtn = document.getElementById('loginBtn');
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+
+        if (user) {
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (userInfo) {
+                userInfo.style.display = 'inline-flex';
+                if (userName) userName.textContent = user.name || user.userid || '已登录';
+                if (userAvatar) userAvatar.textContent = user.avatar ? '' : '👤';
+                if (userAvatar && user.avatar) {
+                    userAvatar.textContent = '';
+                    userAvatar.innerHTML = `<img src="${user.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt=""/>`;
+                }
+            }
+        } else {
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (userInfo) userInfo.style.display = 'none';
+        }
+    }
+
+    function openLoginModal() {
+        const modal = document.getElementById('login-modal');
+        if (modal) modal.classList.add('show');
+        loadWeworkQr();
+    }
+
+    function closeLoginModal() {
+        const modal = document.getElementById('login-modal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    function loadWeworkQr() {
+        const container = document.getElementById('wxQrCode');
+        const tip = document.getElementById('loginTip');
+        if (!container) return;
+
+        // 若已实例化则直接显示
+        if (wwLoginInstance) return;
+
+        // 先从后端获取 CorpID / AgentID
+        fetch('/api/auth')
+            .then(r => r.json())
+            .then(cfg => {
+                if (!cfg.success || !cfg.configured) {
+                    container.innerHTML = '<p style="color:#f0883e;font-size:13px;">企业微信登录尚未配置<br/>请联系管理员设置 CorpID / AgentID / Secret</p>';
+                    return;
+                }
+                renderQr(cfg.corpId, cfg.agentId);
+            })
+            .catch(err => {
+                container.innerHTML = '<p style="color:#f85149;font-size:13px;">获取登录配置失败</p>';
+                if (tip) tip.textContent = '请刷新后重试';
+            });
+    }
+
+    function renderQr(corpId, agentId) {
+        // 动态加载企业微信登录 JS
+        if (window.WwLogin) {
+            doRenderQr(corpId, agentId);
             return;
         }
+        const script = document.createElement('script');
+        script.src = 'https://wwcdn.weixin.qq.com/node/wework/wwopen/js/wwLogin-1.2.7.js';
+        script.onload = function () { doRenderQr(corpId, agentId); };
+        script.onerror = function () {
+            const container = document.getElementById('wxQrCode');
+            if (container) container.innerHTML = '<p style="color:#f85149;font-size:13px;">二维码加载失败，请检查网络</p>';
+        };
+        document.head.appendChild(script);
+    }
 
-        function tryLogin() {
-            const val = input.value.trim();
-            if (val === CORRECT_PASSWORD) {
-                sessionStorage.setItem('auth_passed', '1');
-                overlay.style.display = 'none';
-            } else {
-                error.textContent = '密码错误，请重试';
-                input.value = '';
-                input.focus();
-            }
+    function doRenderQr(corpId, agentId) {
+        const redirectUri = window.location.origin + window.location.pathname;
+        try {
+            wwLoginInstance = new WwLogin({
+                id: 'wxQrCode',
+                appid: corpId,
+                agentid: agentId,
+                redirect_uri: encodeURIComponent(redirectUri),
+                state: 'ecominone-login',
+                href: ''
+            });
+            const tip = document.getElementById('loginTip');
+            if (tip) tip.textContent = '请使用企业微信扫一扫';
+        } catch (e) {
+            console.error('WwLogin init error:', e);
+            const container = document.getElementById('wxQrCode');
+            if (container) container.innerHTML = '<p style="color:#f85149;font-size:13px;">二维码初始化失败</p>';
+        }
+    }
+
+    // 处理扫码回调：URL 中带 code 参数时换取身份
+    function handleAuthCallback() {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        if (!code) return;
+
+        // 清理 URL 中的 code/state 参数，避免刷新重复处理
+        url.searchParams.delete('code');
+        url.searchParams.delete('state');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+
+        const tip = document.getElementById('loginTip');
+        if (tip) tip.textContent = '验证中，请稍候...';
+        const modal = document.getElementById('login-modal');
+        if (modal) modal.classList.add('show');
+
+        fetch('/api/auth?code=' + encodeURIComponent(code))
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.user) {
+                    setStoredUser(data.user);
+                    renderUserArea();
+                    closeLoginModal();
+                } else {
+                    if (tip) tip.textContent = '登录失败：' + (data.error || '未知错误');
+                }
+            })
+            .catch(err => {
+                if (tip) tip.textContent = '登录失败，请重试';
+            });
+    }
+
+    function initAuth() {
+        renderUserArea();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginClose = document.getElementById('loginClose');
+        const modal = document.getElementById('login-modal');
+
+        if (loginBtn) loginBtn.addEventListener('click', openLoginModal);
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function () {
+                clearStoredUser();
+                renderUserArea();
+            });
+        }
+        if (loginClose) loginClose.addEventListener('click', closeLoginModal);
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeLoginModal();
+            });
         }
 
-        if (btn) btn.addEventListener('click', tryLogin);
-        if (input) input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') tryLogin();
-        });
+        // 处理扫码回调
+        handleAuthCallback();
+    }
 
-        // 确保遮罩可见
-        if (overlay) overlay.style.display = 'flex';
-    })();
+    initAuth();
 
     const STORAGE_KEY = 'integrated-system-config-v4';
     const API_BASE = '/api/config';

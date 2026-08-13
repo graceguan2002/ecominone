@@ -7,15 +7,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- 密码验证遮罩 -->
-    <div id="auth-overlay">
-        <div class="auth-box">
-            <div class="auth-icon">◆</div>
-            <h2 class="auth-title">电商全景系统</h2>
-            <p class="auth-subtitle">请输入访问密码</p>
-            <input type="password" id="auth-input" class="auth-input" placeholder="输入密码..." maxlength="20" />
-            <p class="auth-error" id="auth-error"></p>
-            <button class="auth-btn" id="auth-btn">验证进入</button>
+    <!-- 企业微信登录弹窗 -->
+    <div id="login-modal" class="login-modal">
+        <div class="login-box">
+            <div class="login-close" id="loginClose" title="关闭">✕</div>
+            <div class="login-icon">◆</div>
+            <h2 class="login-title">企业微信登录</h2>
+            <p class="login-subtitle">使用企业微信扫码，验证身份后进入</p>
+            <div id="wxQrCode" class="login-qr"></div>
+            <p class="login-tip" id="loginTip">请使用企业微信扫一扫</p>
         </div>
     </div>
 
@@ -39,6 +39,16 @@
             <button class="btn-primary" id="helpBtn">
                 <span>?</span> 使用说明
             </button>
+            <div class="user-area" id="userArea">
+                <button class="btn-login" id="loginBtn">
+                    <span>🔐</span> 登录
+                </button>
+                <div class="user-info" id="userInfo" style="display:none;">
+                    <span class="user-avatar" id="userAvatar">👤</span>
+                    <span class="user-name" id="userName">未登录</span>
+                    <button class="btn-logout" id="logoutBtn" title="退出登录">退出</button>
+                </div>
+            </div>
         </div>
     </header>
 
